@@ -113,4 +113,5 @@ with `sv_enforceGameBuild`.
 
 ## License
 
-WHIP is licensed under the GNU LGPL 3.0. See each repository's `LICENSE` and `NOTICE.md`.
+WHIP is licensed under the GNU LGPL 3.0: see each repository's `COPYING.LESSER` and `NOTICE.md`. These recipes are
+under the same licence (`COPYING.LESSER`, with the GPL 3.0 it builds on in `COPYING`).
