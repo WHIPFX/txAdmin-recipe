@@ -40,8 +40,8 @@ can't be added to a server you already have.
 
 ### First run
 
-1. A few seconds after `Framework loaded successfully!`, the console prints a **WHIP setup** report. Anything marked
-   **FIX** tells you what to change. Type `whipsetup` in the console to see the report again.
+1. Once the server has started, the console prints a **WHIP setup** report. Anything marked **FIX** tells you what to
+   change; with nothing to fix, `Framework loaded successfully!` follows. Type `whipsetup` to see the report again.
 2. Join the server. Your Cfx.re account needs a linked Steam account: the recipe turns on `sv_enforceSteamAuth`, and
    FiveM asks players without one to link it.
 3. Make a character. The appearance editor opens.
