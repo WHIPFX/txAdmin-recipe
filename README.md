@@ -55,7 +55,7 @@ The full documentation is in `resources/whip_core/docs.html`. Open it in a brows
 
 Each resource has its own releases on GitHub. To update one:
 
-1. Read `whip_core/CHANGELOG.md`.
+1. Read the release's notes on the resource's releases page.
 2. Stop the server.
 3. Replace the resource's folder with the new release (**Source code (zip)** on its releases page).
 4. Start the server. Your database carries over: whip_core updates its tables on the next start.
