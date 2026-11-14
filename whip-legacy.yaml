@@ -5,7 +5,7 @@
 # repository). whip-enhanced.yaml has the same list: change both together.
 #
 # txAdmin gives each download 150 seconds, so the largest (whip_media_clothing_female, about 145 MB) needs about
-# 10 Mbit/s from GitHub. Each download_github is one call to GitHub's API (60 an hour without a token): 17 here.
+# 10 Mbit/s from GitHub. Each download_github is one call to GitHub's API (60 an hour without a token): 18 here.
 
 $engine: 3
 $onesync: on
@@ -111,6 +111,12 @@ tasks:
     src: WHIPFX/whip_graphics
     ref: v2.1.0
     dest: ./resources/[assets]/whip_graphics
+
+  # ---- Chameleon Paint, in [assets]: WildBrick142's ramps for whip_autos' Chameleon paints (theirs, not WHIP's) --------
+  - action: download_github
+    src: WHIPFX/chameleon_paint
+    ref: v2.0.0
+    dest: ./resources/[assets]/chameleon_paint
 
   # ---- oxmysql: WHIPFX's fork (2.14.3 with the P-001 fix), its release build, into [ox] ------------------------------
   - action: download_file

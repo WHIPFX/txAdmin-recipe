@@ -92,12 +92,13 @@ In `resources/[assets]/[media]`, the media packs. They're kept out of whip_core 
 | [whip_media_previews](https://github.com/WHIPFX/whip_media_previews) | Vehicle, NPC and tattoo pictures, and the emote menu's preview videos |
 | [whip_media_map](https://github.com/WHIPFX/whip_media_map) | The pause menu's 3D map, GTA's blip icons and the radar's map tiles |
 
-In `resources/[assets]`, the map packs:
+In `resources/[assets]`, the map packs and Chameleon Paint:
 
 | Resource | What it is |
 | --- | --- |
 | [whip_homes_mirrorpark](https://github.com/WHIPFX/whip_homes_mirrorpark) | Every Mirror Park house as a walk-in home, plus 25 garages |
 | [whip_graphics](https://github.com/WHIPFX/whip_graphics) | LED streetlights, and WHIP's look for the city's lighting and sky |
+| [chameleon_paint](https://github.com/WHIPFX/chameleon_paint) | WildBrick142's Chameleon Paint: the colour ramps whip_autos' Chameleon paints need. It's the author's work under their own terms, not part of WHIP, and must never be sold |
 
 `ensure [assets]` starts everything in `[assets]`.
 
