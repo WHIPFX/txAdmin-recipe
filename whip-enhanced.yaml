@@ -157,6 +157,9 @@ tasks:
       # Players need a Steam account linked to their Cfx.re account
       set sv_enforceSteamAuth true
 
+
+      ## Resources List
+      stop chat # We have our own :)
       ensure oxmysql
       ensure whip_core
       ensure whip_autos
@@ -175,11 +178,13 @@ tasks:
 
       # Your own resources go below, each after WHIP: ensure mycafe
 
+
       ## Admins: you (txAdmin's master account) are in group.admin, which gets WHIP's tools (/w and /whip)
       add_ace group.admin command allow
       add_ace group.admin command.quit deny
       add_ace group.admin whip.devtools allow
       {{addPrincipalsMaster}}
+
 
       ## Pool Sizes: Expand GTAV Enhanced's default pool sizes
       increase_pool_size "MaxExtraVehicleModelInfos" 500
