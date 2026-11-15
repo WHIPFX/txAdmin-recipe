@@ -25,7 +25,7 @@ tasks:
 
   - action: download_github
     src: WHIPFX/whip_autos
-    ref: v0.5.0
+    ref: v1.0.0
     dest: ./resources/whip_autos
 
   - action: download_github
@@ -71,7 +71,7 @@ tasks:
 
   - action: download_github
     src: WHIPFX/whip_voice
-    ref: v0.4.1
+    ref: v1.0.0
     dest: ./resources/whip_voice
 
   # ---- WHIP's media packs, in [assets]/[media] -----------------------------------------------------------------------
@@ -107,7 +107,7 @@ tasks:
   # ---- WHIP's map packs, in [assets] ---------------------------------------------------------------------------------
   - action: download_github
     src: WHIPFX/whip_homes_mirrorpark
-    ref: v0.12.1
+    ref: v1.0.0
     dest: ./resources/[assets]/whip_homes_mirrorpark
     timeoutSeconds: 900
 
