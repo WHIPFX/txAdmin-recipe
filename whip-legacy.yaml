@@ -54,9 +54,9 @@ tasks:
     ref: v1.0.0
     dest: ./resources/whip_fuel
 
-  # whip_gunny v2.0.0, as its release's zips (made by tools/release_zips.py)
+  # whip_gunny v2.0.1, as its release's zips (made by tools/release_zips.py)
   - action: download_file
-    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.0/whip_gunny-1.zip
+    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-1.zip
     path: ./tmp/whip_gunny-1.zip
 
   - action: unzip
@@ -65,7 +65,7 @@ tasks:
     timeoutSeconds: 1800
 
   - action: download_file
-    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.0/whip_gunny-2.zip
+    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-2.zip
     path: ./tmp/whip_gunny-2.zip
 
   - action: unzip
@@ -74,7 +74,7 @@ tasks:
     timeoutSeconds: 1800
 
   - action: download_file
-    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.0/whip_gunny-3.zip
+    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-3.zip
     path: ./tmp/whip_gunny-3.zip
 
   - action: unzip
@@ -83,7 +83,7 @@ tasks:
     timeoutSeconds: 1800
 
   - action: download_file
-    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.0/whip_gunny-4.zip
+    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-4.zip
     path: ./tmp/whip_gunny-4.zip
 
   - action: unzip
