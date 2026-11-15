@@ -110,8 +110,8 @@ fork of oxmysql with one fix: a query fails straight away when the database is d
 
 Every resource runs on both games. Resources with models ship them twice: `stream/` for Legacy and
 `stream_enhanced/` for Enhanced. The two recipes differ only in `server.cfg`. The Enhanced recipe sets
-`setr whip_platform enhanced` and gives slow connections more time to download. The Legacy recipe sets the game build
-with `sv_enforceGameBuild`.
+`setr whip_platform enhanced`, gives slow connections more time to download, and raises some of GTA's pool sizes with
+`increase_pool_size`. The Legacy recipe sets the game build with `sv_enforceGameBuild`.
 
 ## License
 
