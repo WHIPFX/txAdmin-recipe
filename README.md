@@ -15,7 +15,7 @@ This repository holds the txAdmin recipes that install WHIP. The framework itsel
   - **GTA V Enhanced**: cfx-server
 - MariaDB 10.2.3+ or MySQL 8.0.16+, and a database user that can create databases.
 - About 1 GB of free disk space.
-- At least 10 Mbit/s to GitHub. txAdmin gives each download 150 seconds, and the largest is about 145 MB.
+- At least 3 Mbit/s to GitHub. txAdmin gives each download 150 seconds, and the largest is 40 MiB.
 - The voice ports open inbound, like port 30120: **UDP 7882-7893** and **TCP 7881**. WHIP runs its own voice server
   on the same machine and sets it up on the first start.
 
