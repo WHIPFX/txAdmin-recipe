@@ -6,8 +6,9 @@
 #
 # txAdmin gives each download 150 seconds, and a recipe can't change that. download_github gets a zip that GitHub builds
 # on request, often too slowly for the big resources. So whip_gunny, whip_homes_mirrorpark and the media packs come as
-# zips attached to their releases, from GitHub's CDN, each 40 MiB or less (about 2.3 Mbit/s in 150 seconds). To
-# release one of them, run tools/release_zips.py: it makes and attaches the zips, and prints their tasks for here.
+# zips attached to their releases, from GitHub's CDN, each 40 MiB or less (about 2.3 Mbit/s in 150 seconds). GitHub
+# makes them when one of those repos publishes a release (tools/release_zips.py), and the run's summary has their
+# tasks for here.
 # Each download_github is one call to GitHub's API (60 an hour without a token): 13 here.
 
 $engine: 3

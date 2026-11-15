@@ -1,0 +1,51 @@
+# Makes a release's zips for the recipes (see tools/release_zips.py) and attaches them to the release. The resource
+# repos call this when they publish a release; templates/release-zips.yml is what each of them has.
+name: Release zips
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The release's tag
+        required: true
+        type: string
+      dest:
+        description: The resource's folder in the recipes, e.g. ./resources/[assets]/[media]/whip_media_props
+        required: true
+        type: string
+
+jobs:
+  zips:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write  # to attach the zips to the calling repo's release
+    steps:
+      - name: Get the script
+        uses: actions/checkout@v7
+        with:
+          repository: WHIPFX/txAdmin-recipe
+          ref: main
+          path: recipe
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Make and attach the zips
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          DEST: ${{ inputs.dest }}
+        run: |
+          python -I recipe/tools/release_zips.py "${GITHUB_REPOSITORY#*/}" "$TAG" --dest "$DEST" > tasks.yaml
+          {
+            echo "### Tasks for both recipes"
+            echo
+            echo "Replace this resource's tasks in whip-legacy.yaml and whip-enhanced.yaml with these:"
+            echo
+            echo '```yaml'
+            cat tasks.yaml
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -6,11 +6,12 @@ attached to the release instead: they come from GitHub's CDN, and each is at mos
 a slow connection. Each zip holds a share of the resource's files, at their paths in the resource; the recipe unzips
 them all into the resource's folder.
 
+GitHub runs it: each such resource has templates/release-zips.yml as .github/workflows/release-zips.yml, which runs
+.github/workflows/release-zips.yml here when it publishes a release. The run's summary has the tasks to paste into both
+recipes. It also runs on a computer with git and gh (logged in with write access to the repo):
+
     py tools/release_zips.py whip_media_props v1.0.0            # build, upload, and print the recipe's tasks
     py tools/release_zips.py whip_media_props v1.0.0 --no-upload
-
-Run it for each such resource when it gets a new release, then paste the printed tasks into both recipes.
-Needs git and gh (logged in with write access to the repo).
 """
 
 import argparse
