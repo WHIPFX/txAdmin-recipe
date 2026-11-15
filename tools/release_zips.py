@@ -25,6 +25,9 @@ import zipfile
 ORG = "WHIPFX"
 # Already compressed: storing them as they are makes the zips build and unzip faster, for the same size
 STORED = {".webp", ".webm", ".png", ".jpg", ".jpeg", ".ogg", ".mp3", ".mp4", ".zip", ".awc"}
+# txAdmin gives an unzip 180 seconds. A zip of a few thousand small files unzips in seconds on most machines, but some
+# servers have taken longer than that (a slow disk, or antivirus checking each new file). A task's timeoutSeconds raises it.
+UNZIP_TIMEOUT = 1800
 FIXED_TIME = (2000, 1, 1, 0, 0, 0)  # every entry gets this time, so the same files give the same zips
 
 
@@ -90,6 +93,7 @@ def recipe_tasks(repo, tag, dest, names):
             "  - action: unzip",
             f"    src: ./tmp/{name}",
             f"    dest: {dest}",
+            f"    timeoutSeconds: {UNZIP_TIMEOUT}",
             "",
         ]
     return "\n".join(lines)

@@ -8,7 +8,8 @@
 # on request, often too slowly for the big resources. So whip_gunny, whip_homes_mirrorpark and the media packs come as
 # zips attached to their releases, from GitHub's CDN, each 40 MiB or less (about 2.3 Mbit/s in 150 seconds). GitHub
 # makes them when one of those repos publishes a release (tools/release_zips.py), and the run's summary has their
-# tasks for here.
+# tasks for here. Their unzips get 1800 seconds: some servers (a slow disk, or antivirus checking each new file) take
+# more than the 180 txAdmin allows by default to write a few thousand small files.
 # Each download_github is one call to GitHub's API (60 an hour without a token): 13 here.
 
 $engine: 3
@@ -61,6 +62,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_gunny-1.zip
     dest: ./resources/whip_gunny
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.0/whip_gunny-2.zip
@@ -69,6 +71,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_gunny-2.zip
     dest: ./resources/whip_gunny
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.0/whip_gunny-3.zip
@@ -77,6 +80,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_gunny-3.zip
     dest: ./resources/whip_gunny
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.0/whip_gunny-4.zip
@@ -85,6 +89,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_gunny-4.zip
     dest: ./resources/whip_gunny
+    timeoutSeconds: 1800
 
   - action: download_github
     src: WHIPFX/whip_loadingscreen
@@ -115,6 +120,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_clothing_male-1.zip
     dest: ./resources/[assets]/[media]/whip_media_clothing_male
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-2.zip
@@ -123,6 +129,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_clothing_male-2.zip
     dest: ./resources/[assets]/[media]/whip_media_clothing_male
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-3.zip
@@ -131,6 +138,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_clothing_male-3.zip
     dest: ./resources/[assets]/[media]/whip_media_clothing_male
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-4.zip
@@ -139,6 +147,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_clothing_male-4.zip
     dest: ./resources/[assets]/[media]/whip_media_clothing_male
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-1.zip
@@ -147,6 +156,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_clothing_female-1.zip
     dest: ./resources/[assets]/[media]/whip_media_clothing_female
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-2.zip
@@ -155,6 +165,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_clothing_female-2.zip
     dest: ./resources/[assets]/[media]/whip_media_clothing_female
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-3.zip
@@ -163,6 +174,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_clothing_female-3.zip
     dest: ./resources/[assets]/[media]/whip_media_clothing_female
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-4.zip
@@ -171,6 +183,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_clothing_female-4.zip
     dest: ./resources/[assets]/[media]/whip_media_clothing_female
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-1.zip
@@ -179,6 +192,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_props-1.zip
     dest: ./resources/[assets]/[media]/whip_media_props
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-2.zip
@@ -187,6 +201,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_props-2.zip
     dest: ./resources/[assets]/[media]/whip_media_props
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-3.zip
@@ -195,6 +210,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_props-3.zip
     dest: ./resources/[assets]/[media]/whip_media_props
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-1.zip
@@ -203,6 +219,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_previews-1.zip
     dest: ./resources/[assets]/[media]/whip_media_previews
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-2.zip
@@ -211,6 +228,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_previews-2.zip
     dest: ./resources/[assets]/[media]/whip_media_previews
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-3.zip
@@ -219,6 +237,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_previews-3.zip
     dest: ./resources/[assets]/[media]/whip_media_previews
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_media_map/releases/download/v1.0.0/whip_media_map-1.zip
@@ -227,6 +246,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_media_map-1.zip
     dest: ./resources/[assets]/[media]/whip_media_map
+    timeoutSeconds: 1800
 
   # ---- WHIP's map packs, in [assets] ---------------------------------------------------------------------------------
   # whip_homes_mirrorpark v1.0.0, as its release's zips (made by tools/release_zips.py)
@@ -237,6 +257,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_homes_mirrorpark-1.zip
     dest: ./resources/[assets]/whip_homes_mirrorpark
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.0/whip_homes_mirrorpark-2.zip
@@ -245,6 +266,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_homes_mirrorpark-2.zip
     dest: ./resources/[assets]/whip_homes_mirrorpark
+    timeoutSeconds: 1800
 
   - action: download_file
     url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.0/whip_homes_mirrorpark-3.zip
@@ -253,6 +275,7 @@ tasks:
   - action: unzip
     src: ./tmp/whip_homes_mirrorpark-3.zip
     dest: ./resources/[assets]/whip_homes_mirrorpark
+    timeoutSeconds: 1800
 
   - action: download_github
     src: WHIPFX/whip_graphics
