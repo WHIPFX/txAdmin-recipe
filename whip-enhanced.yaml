@@ -40,7 +40,7 @@ tasks:
 
   - action: download_github
     src: WHIPFX/whip_dealership
-    ref: 7836972bcc0ac3c104296efac0097335685db92e   # no release yet: its first commit
+    ref: v1.0.0
     dest: ./resources/whip_dealership
 
   - action: download_github
