@@ -5,7 +5,7 @@
 # repository). whip-enhanced.yaml has the same list: change both together.
 #
 # txAdmin gives each download 150 seconds, so the largest (whip_media_clothing_female, about 145 MB) needs about
-# 10 Mbit/s from GitHub. Each download_github is one call to GitHub's API (60 an hour without a token): 19 here.
+# 10 Mbit/s from GitHub. Each download_github is one call to GitHub's API (60 an hour without a token): 20 here.
 
 $engine: 3
 $onesync: on
@@ -38,6 +38,11 @@ tasks:
     src: WHIPFX/whip_chat
     ref: v1.1.0
     dest: ./resources/whip_chat
+
+  - action: download_github
+    src: WHIPFX/whip_dealership
+    ref: 7836972bcc0ac3c104296efac0097335685db92e   # no release yet: its first commit
+    dest: ./resources/whip_dealership
 
   - action: download_github
     src: WHIPFX/whip_fuel
@@ -163,6 +168,7 @@ tasks:
       ensure whip_autos
       ensure whip_autos_shop
       ensure whip_chat
+      ensure whip_dealership
       ensure whip_fuel
       ensure whip_gunny
       ensure whip_loadingscreen

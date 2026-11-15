@@ -79,6 +79,7 @@ In `resources`, each started by its own `ensure` line in `server.cfg`:
 | [whip_fuel](https://github.com/WHIPFX/whip_fuel) | Fuel tanks, pumps with a hose, and the jerry can |
 | [whip_rope](https://github.com/WHIPFX/whip_rope) | A physics rope to carry, tie and tow with |
 | [whip_phone](https://github.com/WHIPFX/whip_phone) | The Duo phone, with apps as modules |
+| [whip_dealership](https://github.com/WHIPFX/whip_dealership) | Simon's car lot: buy cars with cash or from the bank, and manage your car keys |
 | [whip_autos](https://github.com/WHIPFX/whip_autos), [whip_autos_shop](https://github.com/WHIPFX/whip_autos_shop) | Whiplash: customization, turbos and nitrous, and the shop in Burton |
 | [whip_voice](https://github.com/WHIPFX/whip_voice) | 3D voice chat, on a voice server it runs itself |
 | [whip_chat](https://github.com/WHIPFX/whip_chat), [whip_loadingscreen](https://github.com/WHIPFX/whip_loadingscreen) | Chat and the loading screen |
