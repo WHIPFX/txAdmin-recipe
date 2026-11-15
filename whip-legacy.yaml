@@ -150,8 +150,8 @@ tasks:
 
       set mysql_connection_string "{{dbConnectionString}}"
 
-      # The game build WHIP's car, prop and clothing lists are made for (or newer)
-      sv_enforceGameBuild 3407
+      # The game build WHIP is made for (or newer)
+      sv_enforceGameBuild 3889
       sv_scriptHookAllowed 0
       # Players need a Steam account linked to their Cfx.re account
       set sv_enforceSteamAuth true
