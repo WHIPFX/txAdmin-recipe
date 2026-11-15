@@ -5,7 +5,7 @@
 # repository). whip-enhanced.yaml has the same list: change both together.
 #
 # txAdmin gives each download 150 seconds, so the largest (whip_media_clothing_female, about 145 MB) needs about
-# 10 Mbit/s from GitHub. Each download_github is one call to GitHub's API (60 an hour without a token): 18 here.
+# 10 Mbit/s from GitHub. Each download_github is one call to GitHub's API (60 an hour without a token): 19 here.
 
 $engine: 3
 $onesync: on
@@ -118,6 +118,12 @@ tasks:
     ref: v2.0.0
     dest: ./resources/[assets]/chameleon_paint
 
+  # ---- bob74_ipl, in [assets]: Bob74's IPL loader, which fills the map's holes and opens GTA Online's interiors ------
+  - action: download_github
+    src: Bob74/bob74_ipl
+    ref: 2.7.1
+    dest: ./resources/[assets]/bob74_ipl
+
   # ---- oxmysql: WHIPFX's fork (2.14.3 with the P-001 fix), its release build, into [ox] ------------------------------
   - action: download_file
     url: https://github.com/WHIPFX/oxmysql/releases/download/v2.14.3-whip.1/oxmysql.zip
@@ -166,7 +172,7 @@ tasks:
       # with this line. Players send their voices to UDP 7882-7893 and TCP 7881: open those inbound, as 30120.
       add_unsafe_child_process_permission whip_voice
       ensure whip_voice
-      ensure [assets]    # the media packs and the map packs
+      ensure [assets]    # the media packs, the map packs and bob74_ipl
 
       # Your own resources go below, each after WHIP: ensure mycafe
 
