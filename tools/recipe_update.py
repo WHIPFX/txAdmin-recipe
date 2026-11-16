@@ -1,15 +1,20 @@
-"""Moves both WHIP txAdmin recipes to each WHIPFX resource's latest release, and pushes that to main.
+"""Moves the WHIP txAdmin recipes to each WHIPFX resource's latest release, and pushes that to main.
 
 GitHub runs it (.github/workflows/recipe-update.yml) when a resource publishes a release: each resource repo has
 templates/recipes.yml as .github/workflows/recipes.yml, which starts that workflow here. Every resource is checked, not
 only the one that published, so the next run catches up one that was missed.
 
-  - A resource the recipes get with download_github (src: WHIPFX/<repo>) gets the new release's tag as its `ref:`.
-  - A resource the recipes get as its release's zips gets the new release's zips once its Release zips run has
-    attached them (tools/release_zips.py). This waits for that run.
+The recipes are made from recipe/manifest.toml (tools/recipes.py), so a move changes the resource's entry there and
+then writes every recipe from it again:
 
-Each resource that moves is one commit, "chore: the recipes install <repo> <version>", pushed to main when it is ready.
-bob74_ipl (not WHIPFX's) and oxmysql (WHIPFX's fork of upstream, its version in the comment above it) stay by hand.
+  - A resource the recipes get with download_github (github = "source") gets the new release's tag.
+  - A resource the recipes get as its release's zips (github = "release-zips") gets the new release's tag, and its
+    number of zips as parts, once its Release zips run has attached them (tools/release_zips.py). This waits for that
+    run.
+
+Each resource that moves is one commit of the manifest and the recipes, "chore: the recipes install <repo> <version>",
+pushed to main when it is ready. bob74_ipl (not WHIPFX's) and oxmysql (WHIPFX's fork of upstream, a release build)
+stay by hand.
 
 It also runs on a computer with git, and a token for GitHub's API in GH_TOKEN (60 calls an hour without one):
 
@@ -27,16 +32,15 @@ import urllib.error
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from release_zips import ORG, recipe_tasks  # noqa: E402  (its tasks, so both scripts write them alike)
+import recipes  # noqa: E402  (makes every recipe from the manifest)
+from release_zips import ORG  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RECIPES = ("whip-legacy.yaml", "whip-enhanced.yaml")
+MANIFEST = "recipe/manifest.toml"
+# What a move changes: the manifest, and every recipe tools/recipes.py writes from it
+FILES = (MANIFEST, *sorted(recipes.render_all(recipes.load_manifest()).keys()))
 WAIT_SECONDS = 45 * 60  # the longest a release's zips are waited for (a Release zips run takes about 10 minutes)
 POLL_SECONDS = 30
-
-SRC = re.compile(r"^    src: WHIPFX/([\w.-]+)$")
-REF = re.compile(r"^    ref: (\S+)$")
-ZIP_URL = re.compile(r"^    url: https://github\.com/WHIPFX/([\w.-]+)/releases/download/([^/\s]+)/([\w.-]+)$")
 
 
 class Refused(Exception):
@@ -61,88 +65,44 @@ def api(path):
         raise
 
 
-def read(name):
-    with open(os.path.join(ROOT, name), encoding="utf-8", newline="") as f:
-        return f.read().split("\n")
-
-
-def write(name, lines):
-    with open(os.path.join(ROOT, name), "w", encoding="utf-8", newline="") as f:
-        f.write("\n".join(lines))
-
-
 def is_part(repo, asset):
     """Is this asset one of the resource's release zips (<repo>-<n>.zip)?"""
     return re.fullmatch(rf"{re.escape(repo)}-\d+\.zip", asset) is not None
 
 
-def resources(lines):
-    """Every WHIPFX resource in one recipe: {repo: ('ref', tag) or ('zips', tag)}."""
+def resources(manifest):
+    """Every WHIPFX resource the update moves: {repo: ('ref', tag) or ('zips', tag)}."""
     found = {}
-    for i, line in enumerate(lines):
-        m = SRC.match(line)
-        if m:
-            for field in lines[i + 1:]:
-                if not field.startswith("    "):
-                    break
-                r = REF.match(field)
-                if r:
-                    found[m.group(1)] = ("ref", r.group(1))
-            continue
-        m = ZIP_URL.match(line)
-        if m and is_part(m.group(1), m.group(3)):
-            repo, tag = m.group(1), m.group(2)
-            if found.get(repo, ("zips", tag)) != ("zips", tag):
-                raise Refused(f"{repo}: its zips come from more than one release")
-            found[repo] = ("zips", tag)
+    for r in manifest.resources:
+        owner, _, repo = r.repo.partition("/")
+        if owner != ORG or r.github == "release-asset":
+            continue  # bob74_ipl and oxmysql: by hand
+        if r.name != repo:
+            raise Refused(f"{r.repo}: its name in the manifest is {r.name}, not {repo}")
+        found[repo] = ("ref", r.tag) if r.github == "source" else ("zips", r.tag)
     return found
 
 
-def move_ref(lines, repo, tag):
-    for i, line in enumerate(lines):
-        if line == f"    src: {ORG}/{repo}":
-            j = i + 1
-            while j < len(lines) and lines[j].startswith("    "):
-                if REF.match(lines[j]):
-                    lines[j] = f"    ref: {tag}"
-                    return
-                j += 1
-    raise Refused(f"{repo}: no ref: under its src:")
-
-
-def move_zips(lines, repo, tag, names):
-    """Swaps the resource's run of download_file / unzip tasks for the new release's, and the version in a comment
-    just above them that names the resource (whip_gunny v2.0.1, as its release's zips ...)."""
-    def ours(i):
-        m = ZIP_URL.match(lines[i + 1]) if i + 1 < len(lines) else None
-        return m is not None and m.group(1) == repo and is_part(repo, m.group(3))
-
-    starts = [i for i, line in enumerate(lines) if line == "  - action: download_file" and ours(i)]
-    if not starts:
-        raise Refused(f"{repo}: no release zips to replace")
-    first, end = starts[0], starts[-1] + 1
-    dest = None
-    # Every task from the first download to the last unzip must be the resource's own, so nothing else is replaced.
-    while end < len(lines) and (lines[end].startswith("    ") or lines[end] == ""
-                                or lines[end] in ("  - action: unzip", "  - action: download_file")):
-        line = lines[end]
-        if line == "  - action: download_file" and not ours(end):
-            break
-        if line.startswith("    src: ") and not is_part(repo, os.path.basename(line[len("    src: "):])):
-            raise Refused(f"{repo}: an unzip among its tasks is not its own")
-        if line.startswith("    dest: "):
-            dest = dest or line[len("    dest: "):]
-        end += 1
-    if not dest:
-        raise Refused(f"{repo}: its unzips have no dest:")
-    while end > first and lines[end - 1] == "":  # keep the blank lines after the run as they were
-        end -= 1
-    new = recipe_tasks(repo, tag, dest, names).split("\n")
-    while new and new[-1] == "":
-        new.pop()
-    lines[first:end] = new
-    for k in range(max(0, first - 3), first):
-        lines[k] = re.sub(rf"^(  # {re.escape(repo)} )v?\d\S*(, as its release's zips)", rf"\g<1>{tag}\g<2>", lines[k])
+def move(text, repo, tag, parts=None):
+    """The manifest's text with the resource's tag (and, for zips, its parts) changed, and nothing else."""
+    lines = text.split("\n")
+    at = [i for i, line in enumerate(lines) if line == f'repo = "{ORG}/{repo}"']
+    if len(at) != 1:
+        raise Refused(f"{repo}: it is in {MANIFEST} {len(at)} times")
+    first = at[0]
+    while first > 0 and not lines[first - 1].startswith("["):
+        first -= 1
+    last = at[0]
+    while last + 1 < len(lines) and not lines[last + 1].startswith("["):
+        last += 1
+    wanted = {"tag": f'tag = "{tag}"'} | ({"parts": f"parts = {parts}"} if parts is not None else {})
+    for i in range(first, last + 1):
+        key = lines[i].split(" = ", 1)[0]
+        if key in wanted:
+            lines[i] = wanted.pop(key)
+    if wanted:
+        raise Refused(f"{repo}: no {' or '.join(wanted)} in its entry in {MANIFEST}")
+    return "\n".join(lines)
 
 
 def zips_ready(repo, tag):
@@ -172,11 +132,11 @@ def git(*args, check=True):
 
 
 def land(repo, tag, push):
-    if git("diff", "--quiet", "--", *RECIPES, check=False) == 0:
+    if git("diff", "--quiet", "--", *FILES, check=False) == 0:
         print(f"{repo}: already at {tag}")
         return
     version = tag[1:] if re.match(r"v\d", tag) else tag
-    git("commit", "-q", "-m", f"chore: the recipes install {repo} {version}", "--", *RECIPES)
+    git("commit", "-q", "-m", f"chore: the recipes install {repo} {version}", "--", *FILES)
     if not push:
         print(f"{repo}: moved to {tag}, committed")
         return
@@ -194,12 +154,11 @@ def main():
     p.add_argument("--no-push", action="store_true", help="commit, but don't push")
     args = p.parse_args()
 
-    found = [resources(read(name)) for name in RECIPES]
-    if found[0] != found[1]:
-        sys.exit(f"The recipes don't list the same releases: {RECIPES[0]} {found[0]} and {RECIPES[1]} {found[1]}")
+    if recipes.main(["--check"]) != 0:
+        sys.exit(f"The recipes don't match {MANIFEST}: fix that first, so a move only changes what it moves")
 
     todo = []
-    for repo, (kind, tag) in sorted(found[0].items()):
+    for repo, (kind, tag) in sorted(resources(recipes.load_manifest()).items()):
         latest = api(f"repos/{ORG}/{repo}/releases/latest")
         if latest is None:
             print(f"{repo}: no release yet")
@@ -221,17 +180,16 @@ def main():
                 if args.dry_run:
                     print(f"{repo}: would move from {old} to {new}" + (f" ({len(names)} zips)" if names else ""))
                     continue
-                for name in RECIPES:
-                    lines = read(name)
-                    if kind == "ref":
-                        move_ref(lines, repo, new)
-                    else:
-                        move_zips(lines, repo, new, names)
-                    write(name, lines)
+                path = os.path.join(ROOT, MANIFEST)
+                with open(path, encoding="utf-8") as f:
+                    text = move(f.read(), repo, new, len(names) if names else None)
+                with open(path, "w", encoding="utf-8", newline="") as f:
+                    f.write(text)
+                recipes.main([])  # every recipe, written again from the manifest
                 land(repo, new, not args.no_push)
             except Refused as e:
                 print(f"::error::{e}")
-                git("checkout", "--", *RECIPES, check=False)
+                git("checkout", "--", *FILES, check=False)
                 refused.append(repo)
         todo = waiting
         if not todo:
