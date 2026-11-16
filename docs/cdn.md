@@ -24,7 +24,11 @@ never meet. Only the stable recipe paths and `releases.json` change, and a rollb
 
 ## A release
 
-A push to `main` that changes `recipe/` (or the tools) runs the workflow. Each job runs only if the one before passed.
+A push to `main` that changes `recipe/` (or the tools) runs the workflow, and so does every finished Recipe update
+run (`recipe-update.yml`). The Recipe update pushes its moves with the workflow's own token, which starts no push
+workflows, so this is how its moves reach the CDN. A run with nothing new to publish stops at promote with a notice:
+promote makes the live release's recipes again from the manifest, and if they come out the same, there is nothing to
+do. Each job runs only if the one before passed.
 
 1. **check**: the unit tests, and the committed recipes are what `recipe/manifest.toml` makes.
 2. **build** (on `vars.WHIP_HEAVY_RUNNER`, else `ubuntu-latest`): for each resource whose tag isn't in the bucket yet,

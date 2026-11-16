@@ -155,6 +155,10 @@ server.cfg in `recipe/server.legacy.cfg` and `recipe/server.enhanced.cfg`. Don't
 the manifest, run `python tools/recipes.py`, and commit both. CI fails a pull request whose recipes don't match the
 manifest, and checks every recipe with txAdmin's own parser rules.
 
+You rarely need to: when a WHIPFX resource publishes a release, the Recipe update (`tools/recipe_update.py`) moves its
+tag in the manifest, writes the recipes again and pushes both to `main`, one commit per resource. bob74_ipl and
+oxmysql are moved by hand.
+
 When the manifest changes on `main`, CI zips every resource at its tag, uploads the zips to WHIP's CDN, downloads each
 one back through the CDN to check it, and only then publishes the CDN recipes. A bad release can be rolled back in a
 minute. [docs/cdn.md](docs/cdn.md) has how it works, how to set it up, and how to roll back.
