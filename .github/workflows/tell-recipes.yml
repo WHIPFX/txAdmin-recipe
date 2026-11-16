@@ -1,0 +1,23 @@
+# Starts the recipe update here (recipe-update.yml) for a resource repo that has published a release. Each resource repo
+# calls this from .github/workflows/recipes.yml (templates/recipes.yml) with the org secret WHIP_RECIPE_TOKEN: a token
+# that can only start workflows in this repo (Actions: read and write on txAdmin-recipe, nothing else).
+name: Tell the recipes
+
+on:
+  workflow_call:
+    secrets:
+      token:
+        required: true
+
+jobs:
+  tell:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Start the recipe update
+        env:
+          GH_TOKEN: ${{ secrets.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh workflow run recipe-update.yml -R WHIPFX/txAdmin-recipe \
+            -f from="${GITHUB_REPOSITORY#*/} ${TAG:-by hand}"

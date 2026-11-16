@@ -1,0 +1,42 @@
+# Moves both recipes to each WHIPFX resource's latest release and pushes that to main (tools/recipe_update.py). A
+# resource repo starts it when it publishes a release (templates/recipes.yml, through tell-recipes.yml); Actions >
+# Recipe update > Run workflow starts it by hand. GitHub Actions bypasses this repo's main ruleset, so it can push.
+name: Recipe update
+run-name: "Recipe update: ${{ inputs.from || 'by hand' }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: What started it, e.g. "whip_core v1.2.0" (every resource is checked either way)
+        required: false
+        default: ""
+
+# One at a time. GitHub keeps only the newest run waiting behind the one running, which is enough: each checks them all.
+concurrency:
+  group: recipe-update
+  cancel-in-progress: false
+
+permissions:
+  contents: write  # to push the recipes to main
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Move the recipes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python -I tools/recipe_update.py

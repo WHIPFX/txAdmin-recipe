@@ -7,8 +7,8 @@ a slow connection. Each zip holds a share of the resource's files, at their path
 them all into the resource's folder.
 
 GitHub runs it: each such resource has templates/release-zips.yml as .github/workflows/release-zips.yml, which runs
-.github/workflows/release-zips.yml here when it publishes a release. The run's summary has the tasks to paste into both
-recipes. It also runs on a computer with git and gh (logged in with write access to the repo):
+.github/workflows/release-zips.yml here when it publishes a release, and the Recipe update (tools/recipe_update.py) then
+puts the zips' tasks in both recipes. It also runs on a computer with git and gh (logged in with write access to the repo):
 
     py tools/release_zips.py whip_media_props v1.0.0            # build, upload, and print the recipe's tasks
     py tools/release_zips.py whip_media_props v1.0.0 --no-upload
