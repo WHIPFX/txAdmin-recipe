@@ -26,7 +26,7 @@ tasks:
   # ---- WHIP ----------------------------------------------------------------------------------------------------------
   - action: download_github
     src: WHIPFX/whip_core
-    ref: v1.1.1
+    ref: v1.2.0
     dest: ./resources/whip_core
 
   - action: download_github
