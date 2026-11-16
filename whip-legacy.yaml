@@ -327,6 +327,9 @@ tasks:
       set sv_enforceSteamAuth true
       # Disable the Mumble voice server in favor of whip_voice
       set mumble_disableServer true
+      # GTA's own nine 24/7s and five LTDs as shops, each with a keeper (whip_core's Config.GtaStores). Take this line
+      # out if another resource runs your stores. Also on /whip > Settings > World & gameplay.
+      set whip_gta_stores true
 
       ensure oxmysql
       ensure whip_core

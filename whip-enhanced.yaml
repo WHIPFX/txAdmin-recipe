@@ -326,6 +326,9 @@ tasks:
       sv_scriptHookAllowed 0
       # Players need a Steam account linked to their Cfx.re account
       set sv_enforceSteamAuth true
+      # GTA's own nine 24/7s and five LTDs as shops, each with a keeper (whip_core's Config.GtaStores). Take this line
+      # out if another resource runs your stores. Also on /whip > Settings > World & gameplay.
+      set whip_gta_stores true
 
 
       ## Resources List
