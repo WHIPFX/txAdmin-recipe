@@ -43,7 +43,7 @@ jobs:
           {
             echo "### Tasks for both recipes"
             echo
-            echo "Replace this resource's tasks in whip-legacy.yaml and whip-enhanced.yaml with these:"
+            echo "The Recipe update in WHIPFX/txAdmin-recipe puts these in whip-legacy.yaml and whip-enhanced.yaml:"
             echo
             echo '```yaml'
             cat tasks.yaml
