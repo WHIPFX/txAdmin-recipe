@@ -10,9 +10,10 @@
 #             Runs in the "cdn" environment, so it can wait for a maintainer's approval.
 #   rollback  (Run workflow > rollback) point recipes/*.yaml back at an earlier release, and check them
 #
-# A push to main that changes the manifest publishes a release. A resource repo can also call this workflow when it
-# publishes a release ("stage": build, upload and verify that one resource, without changing any recipe), so the zips
-# are already on the CDN when the manifest moves to the new tag: see templates/release-zips.yml.
+# A push to main that changes the manifest publishes a release, and so does each Recipe update run (when a resource
+# publishes a release, tools/recipe_update.py moves its tag in the manifest). A resource repo can also call this
+# workflow when it publishes a release ("stage": build, upload and verify that one resource, without changing any
+# recipe), so the zips are already on the CDN when the manifest moves to the new tag: see templates/release-zips.yml.
 name: CDN
 
 on:
@@ -24,6 +25,13 @@ on:
       - tools/recipes.py
       - tools/release_zips.py
       - .github/workflows/cdn.yml
+  # The Recipe update (recipe-update.yml) pushes its moves with the workflow's own token, and GitHub starts no push
+  # workflows for those: this picks them up when it finishes. A run that moved nothing publishes nothing (promote sees
+  # the CDN already serves the same recipes).
+  workflow_run:
+    workflows: [Recipe update]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       action:

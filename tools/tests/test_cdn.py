@@ -293,6 +293,16 @@ asset = "oxmysql.zip"
         with self.assertRaises(SystemExit):
             self.cdn("rollback", "--to", "r9")
 
+    def test_a_run_that_changes_nothing_makes_no_release(self) -> None:
+        # e.g. a Recipe update run that moved nothing: the CDN already serves exactly these recipes
+        self.publish("r1")
+        before = self.stable()
+        self.publish("r2")
+        rel = self.releases()
+        self.assertEqual((rel["current"], [r["id"] for r in rel["releases"]]), ("r1", ["r1"]))
+        self.assertEqual(self.stable(), before)
+        self.assertIsNone(self.store.get("recipes/r2/whip-legacy.yaml"))
+
     def test_nothing_is_promoted_without_a_passing_verify(self) -> None:
         self.dist = self.tmp / "dist"
         self.cdn("build")

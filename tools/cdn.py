@@ -566,6 +566,14 @@ def promote(m: recipes.Manifest, store: Store, dist: Path, base: str, release_id
                "promoting this older one.")
         return
     indexes = {r.name: json.loads((dist / "index" / f"{r.name}.json").read_text()) for r in m.resources}
+    if current and current.get("base") == base:
+        # The live release's recipes, made again from this manifest: byte for byte the same means nothing changed
+        # (a Recipe update run that moved nothing, or a push that only touched the tools)
+        again = recipes.render_all(m, "cdn", indexes=indexes, base=base, release_id=current["id"])
+        if {n: hashlib.sha256(t.encode()).hexdigest() for n, t in again.items()} == {
+                n: r["sha256"] for n, r in current["recipes"].items()}:
+            notice(f"Nothing to publish: the CDN already serves these recipes as release {current['id']}.")
+            return
     entry = {"id": release_id, "time": now(), "commit": commit, "base": base,
              "resources": {r.name: {"tag": indexes[r.name]["tag"], "parts": [
                  {k: p[k] for k in ("key", "size", "sha256")} for p in indexes[r.name]["parts"]]} for r in m.resources},
