@@ -9,8 +9,8 @@ on:
 
 jobs:
   recipes:
-    # Not from a fork (it has no token), and not for a pre-release (the recipes take the latest release)
+    # Not from a fork (it has no secrets), and not for a pre-release (the recipes take the latest release)
     if: ${{ github.repository_owner == 'WHIPFX' && !github.event.release.prerelease }}
     uses: WHIPFX/txAdmin-recipe/.github/workflows/tell-recipes.yml@main
     secrets:
-      token: ${{ secrets.WHIP_RECIPE_TOKEN }}
+      app_key: ${{ secrets.WHIP_RECIPE_APP_KEY }}
