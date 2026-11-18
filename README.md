@@ -15,7 +15,7 @@ This repository holds the txAdmin recipes that install WHIP. The framework itsel
   - **GTA V Enhanced**: cfx-server
 - MariaDB 10.2.3+ or MySQL 8.0.16+, and a database user that can create databases.
 - About 1 GB of free disk space.
-- At least 3 Mbit/s to GitHub. txAdmin gives each download 150 seconds, and the largest is 40 MiB.
+- At least 3 Mbit/s to GitHub, or to WHIP's CDN. txAdmin gives each download 150 seconds, and the largest is 40 MiB.
 - The voice ports open inbound, like port 30120: **UDP 7882-7893** and **TCP 7881**. WHIP runs its own voice server
   on the same machine and sets it up on the first start.
 
@@ -24,19 +24,53 @@ can't be added to a server you already have.
 
 ## Install
 
-1. Start the server and open txAdmin. On the setup page, choose **Remote URL Template** and paste the recipe for your
-   game:
+1. Start the server and open txAdmin. On the setup page, choose **Remote URL Template** and paste a recipe URL from
+   the table below.
 
-   | Game | Recipe URL |
+   | Game | Full install | Lite install |
+   | --- | --- | --- |
+   | FiveM Legacy | `whip-legacy.yaml` | `whip-legacy-lite.yaml` |
+   | GTA V Enhanced | `whip-enhanced.yaml` | `whip-enhanced-lite.yaml` |
+
+   Each recipe is in two places, with the same contents. Use WHIP's CDN first; GitHub is the fallback:
+
+   | Where | URL |
    | --- | --- |
-   | FiveM Legacy | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-legacy.yaml` |
-   | GTA V Enhanced | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-enhanced.yaml` |
+   | WHIP's CDN | `https://<cdn>/recipes/whip-legacy.yaml` (and the same for the other three) |
+   | GitHub | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-legacy.yaml` |
+
+   The CDN recipes download every file from the CDN, so they also work on a machine that can't reach GitHub. The
+   GitHub recipes download from GitHub.
+
+   **Full or lite?** The full recipe installs everything in one go. The lite recipe leaves out the heavy packs (the
+   five media packs and the Mirror Park homes, most of the download and thousands of small files to unzip), so it
+   finishes much sooner on a slow connection or disk. It writes `get-whip-media.ps1` and `get-whip-media.sh` into the
+   server folder: once the install is done, stop the server and run one of them to add the heavy packs.
+
+   - Windows: `powershell -ExecutionPolicy Bypass -File get-whip-media.ps1`
+   - Linux: `sh get-whip-media.sh` (it needs `curl` and `unzip`)
+
+   They download each zip (from where the recipe came from), check it, and unzip it into its folder. If one stops, run
+   it again: it keeps the zips it already has.
 
 2. Enter your server license key (from [portal.cfx.re](https://portal.cfx.re)) and your database login. txAdmin
    downloads WHIP and oxmysql, creates an empty database, turns on OneSync, writes `server.cfg` and makes your txAdmin
    account an admin. There's no SQL file to import: WHIP creates its own tables.
 3. Start the server. On Windows, the first start asks whether to let `livekit-server.exe` through the firewall: click
    **Allow**. You can also run `resources/whip_voice/service/Open voice ports.bat`.
+
+### If the install fails
+
+- **`Recipe error: connect ENETUNREACH 185.199.110.133:443`** (or `ETIMEDOUT`, or `ECONNRESET`) when you paste the
+  GitHub URL: this machine can't reach GitHub at all. That address is raw.githubusercontent.com, in the same GitHub
+  range (185.199.108.0/22) that the recipe's release downloads come from. Use the CDN URL instead: none of its
+  downloads go to GitHub.
+- **A task `timed out after 180s`**, or a download that stops part way: the connection is too slow for txAdmin's 150
+  seconds per download. Try the CDN recipe, or the lite recipe and then `get-whip-media`, which has no time limit.
+- **An unzip that times out**: a slow disk, or antivirus checking each new file. The lite recipe leaves the unzips with
+  thousands of files to `get-whip-media`, outside txAdmin's limits.
+
+Delete the half-made server folder before you try again: txAdmin only deploys into an empty folder.
 
 ### First run
 
@@ -113,6 +147,21 @@ Every resource runs on both games. Resources with models ship them twice: `strea
 `stream_enhanced/` for Enhanced. The two recipes differ only in `server.cfg`. The Enhanced recipe sets
 `setr whip_platform enhanced`, gives slow connections more time to download, and raises some of GTA's pool sizes with
 `increase_pool_size`. The Legacy recipe sets the game build with `sv_enforceGameBuild`.
+
+## Changing the recipes
+
+Every recipe is made from one list, `recipe/manifest.toml` (each resource, its tag, and where it goes), with the
+server.cfg in `recipe/server.legacy.cfg` and `recipe/server.enhanced.cfg`. Don't edit the `whip-*.yaml` files: change
+the manifest, run `python tools/recipes.py`, and commit both. CI fails a pull request whose recipes don't match the
+manifest, and checks every recipe with txAdmin's own parser rules.
+
+You rarely need to: when a WHIPFX resource publishes a release, the Recipe update (`tools/recipe_update.py`) moves its
+tag in the manifest, writes the recipes again and pushes both to `main`, one commit per resource. bob74_ipl and
+oxmysql are moved by hand.
+
+When the manifest changes on `main`, CI zips every resource at its tag, uploads the zips to WHIP's CDN, downloads each
+one back through the CDN to check it, and only then publishes the CDN recipes. A bad release can be rolled back in a
+minute. [docs/cdn.md](docs/cdn.md) has how it works, how to set it up, and how to roll back.
 
 ## License
 
