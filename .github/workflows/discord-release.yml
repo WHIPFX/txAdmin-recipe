@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read        # the release and the commits between tags
-      pull-requests: read   # each PR's title and description
+      pull-requests: read   # each PR's title
     steps:
       - name: Get the script
         uses: actions/checkout@v7

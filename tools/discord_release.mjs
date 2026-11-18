@@ -5,7 +5,7 @@
 // The changelog, first that applies:
 //   1. A "## Changelog" section the release's notes have, written by hand: that, as it is.
 //   2. GitHub's generated notes ("What's Changed"): each PR, by kind (feat New, fix Fixed, perf Faster, the rest
-//      Changed), with who made it and the first paragraph of its description.
+//      Changed), with who made it.
 //   3. Notes that are only "Full Changelog: <compare>": the commits between the two tags, by kind.
 //   4. Notes written by hand without that heading: those, as they are.
 //
@@ -18,7 +18,6 @@ const dryRun = flag === '--dry-run' || !process.env.DISCORD_WEBHOOK;
 if (!repo || !tag) { console.error('usage: discord_release.mjs <owner/repo> <tag> [--dry-run]'); process.exit(2); }
 
 const KINDS = [['feat', 'New'], ['fix', 'Fixed'], ['perf', 'Faster'], ['', 'Changed']];
-const SUMMARY = 220;      // characters of a PR's description
 const MAX_COMMITS = 25;   // commits listed before "and N more"
 const MAX_TEXT = 3900;    // Discord takes 4096 in an embed's description
 
@@ -33,23 +32,13 @@ const gh = async (path) => {
 
 /** A title's kind and the title without its prefix, capitalised: 'feat: x' -> ['New', 'X']. */
 function kindOf(title) {
+    title = title.trim();   // a title can end in a stray \r, which `.` does not match
     // Only the conventional types count as a prefix ('Fix/' as well as 'fix:'), so 'OpenShop: ...' keeps its word.
     const m = title.match(/^(feat|fix|perf|chore|docs|refactor|ci|style|test|build|revert)(\([^)]*\))?!?[:/]\s*(.*)$/i);
     const kind = m ? m[1].toLowerCase() : '';
     const label = (KINDS.find(([k]) => k === kind) || KINDS[KINDS.length - 1])[1];
     const text = (m ? m[3] : title).trim();
     return [label, text.charAt(0).toUpperCase() + text.slice(1)];
-}
-
-/** The first paragraph of a PR's description, as plain text, cut at a word near SUMMARY. */
-function summaryOf(body) {
-    const para = (body || '').replace(/\r/g, '').split(/\n\s*\n/).map((p) => p.trim())
-        .find((p) => p && !/^(#|<!--|- \[|```|\|)/.test(p)) || '';
-    let text = para.replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-        // Bold and code marks go; names like whip_core and refs like #22 stay as they are.
-        .replace(/^\s*[-*]\s+/gm, '').replace(/^\s*(>|#+)\s*/gm, '').replace(/\*\*|`/g, '').replace(/\s+/g, ' ').trim();
-    if (text.length > SUMMARY) text = text.slice(0, text.lastIndexOf(' ', SUMMARY)).replace(/[,;:.]$/, '') + '…';
-    return text;
 }
 
 /** Hand-written markdown as Discord shows it in an embed: headings as bold lines, '* ' lists as bullets. */
@@ -63,9 +52,8 @@ function grouped(entries) {
     const groups = new Map(KINDS.map(([, label]) => [label, []]));
     for (const [label, line] of entries) groups.get(label).push(line);
     const parts = [];
-    // (A PR with its summary takes two lines: a blank one between them. A commit is one line.)
     for (const [label, lines] of groups) {
-        if (lines.length) parts.push(`**${label}**\n${lines.join(lines.some((l) => l.includes('\n')) ? '\n\n' : '\n')}`);
+        if (lines.length) parts.push(`**${label}**\n${lines.join('\n')}`);
     }
     return parts.join('\n\n');
 }
@@ -74,15 +62,11 @@ async function fromPulls(numbers, body) {
     const prs = await Promise.all(numbers.map((n) => gh(`repos/${repo}/pulls/${n}`)));
     const entries = prs.map((pr) => {
         // A title GitHub cut short ends with '…', and its description starts with the rest of it.
-        let title = pr.title, text = pr.body || '';
-        if (title.endsWith('…') && text.startsWith('…')) {
-            const rest = text.slice(1).split(/\r?\n/)[0];
-            title = title.slice(0, -1) + rest;
-            text = text.slice(1 + rest.length);
-        }
+        let title = pr.title;
+        const desc = pr.body || '';
+        if (title.endsWith('…') && desc.startsWith('…')) title = title.slice(0, -1) + desc.slice(1).split(/\r?\n/)[0];
         const [label, name] = kindOf(title.replace(/\s*\(\d+\.\d+\.\d+\)\s*$/, ''));
-        const summary = summaryOf(text);
-        return [label, `• **${name}** ([#${pr.number}](${pr.html_url})) by ${pr.user.login}` + (summary ? `\n${summary}` : '')];
+        return [label, `• **${name}** ([#${pr.number}](${pr.html_url})) by ${pr.user.login}`];
     });
     let out = grouped(entries);
     const fresh = [...body.matchAll(/^\* @(\S+) made their first contribution/gm)].map((m) => m[1]);
@@ -125,7 +109,11 @@ async function changelog(rel) {
 async function main() {
     const rel = await gh(`repos/${repo}/releases/tags/${encodeURIComponent(tag)}`);
     let { text, count } = await changelog(rel);
-    if (text.length > MAX_TEXT) text = text.slice(0, text.lastIndexOf('\n', MAX_TEXT)) + '\n…and more in the full notes.';
+    if (text.length > MAX_TEXT) {
+        // Cut at a line, and drop a heading the cut left without its lines.
+        text = text.slice(0, text.lastIndexOf('\n', MAX_TEXT)).replace(/\s*(\n\*\*[^*\n]+\*\*)?\s*$/, '');
+        text += '\n\n…and more in the full notes.';
+    }
     const name = repo.split('/')[1];
     const payload = {
         allowed_mentions: { parse: [] },   // a name in the notes never pings anyone
