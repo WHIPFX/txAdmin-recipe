@@ -349,7 +349,8 @@ def render(m: Manifest, platform: str, variant: Variant, source: Source = "githu
                         "or antivirus checking each new file) take more than the 180 txAdmin allows by default to write "
                         "a few thousand small files.")
         head += comment(f"Each download_github is one call to GitHub's API (60 an hour without a token): {github_calls} "
-                        "here.")
+                        "here. A server that can't reach GitHub can use the same recipe from WHIP's CDN, media.whipfx.net: "
+                        "see the README.")
     else:
         head += comment(f"Every file comes from {where}, not from GitHub: release {release_id}. CI zipped each resource "
                         "at its tag, downloaded every zip back through the CDN to check it, and only then published this "

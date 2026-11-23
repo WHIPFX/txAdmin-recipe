@@ -15,7 +15,7 @@ This repository holds the txAdmin recipes that install WHIP. The framework itsel
   - **GTA V Enhanced**: cfx-server
 - MariaDB 10.2.3+ or MySQL 8.0.16+, and a database user that can create databases.
 - About 1 GB of free disk space.
-- At least 3 Mbit/s to GitHub. txAdmin gives each download 150 seconds, and the largest is 40 MiB.
+- At least 3 Mbit/s to WHIP's CDN (or GitHub). txAdmin gives each download 150 seconds, and the largest is 40 MiB.
 - The voice ports open inbound, like port 30120: **UDP 7882-7893** and **TCP 7881**. WHIP runs its own voice server
   on the same machine and sets it up on the first start.
 
@@ -29,8 +29,12 @@ can't be added to a server you already have.
 
    | Game | Recipe URL |
    | --- | --- |
-   | FiveM Legacy | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-legacy.yaml` |
-   | GTA V Enhanced | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-enhanced.yaml` |
+   | FiveM Legacy | `https://media.whipfx.net/recipes/whip-legacy.yaml` |
+   | GTA V Enhanced | `https://media.whipfx.net/recipes/whip-enhanced.yaml` |
+
+   These come from WHIP's CDN, and so does every file they download. If the CDN can't be reached, the same recipes
+   are on GitHub, downloading from GitHub: `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-legacy.yaml`
+   (or `whip-enhanced.yaml`).
 
    **On a slow connection or disk, use the lite recipe:** the same URL ending in `-lite.yaml` (`whip-legacy-lite.yaml`,
    `whip-enhanced-lite.yaml`). It leaves out the heavy packs (the five media packs and the Mirror Park homes, most of
@@ -52,6 +56,8 @@ can't be added to a server you already have.
 
 ### If the install fails
 
+- **`Recipe error: connect ENETUNREACH 185.199.110.133:443`** (or `ETIMEDOUT`, or `ECONNRESET`) with the GitHub URL:
+  this machine can't reach GitHub. Use the `media.whipfx.net` URL: none of its downloads go to GitHub.
 - **A task `timed out after 180s`**, or a download that stops part way: the connection is too slow for txAdmin's 150
   seconds per download. Use the lite recipe, then `get-whip-media`, which has no time limit.
 - **An unzip that times out**: a slow disk, or antivirus checking each new file. The lite recipe leaves the unzips with
