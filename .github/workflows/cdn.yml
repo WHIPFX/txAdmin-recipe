@@ -1,19 +1,20 @@
-# Publishes the recipes, and every file they download, to WHIP's CDN: a Cloudflare R2 bucket behind a custom domain.
-# docs/cdn.md has the setup and how to run it. Each job only runs if the one before passed:
+# Publishes the recipes, and every file they download, to WHIP's CDN: a Cloudflare R2 bucket behind
+# media.whipfx.net. docs/cdn.md has the setup and how to run it. Each job only runs if the one before passed:
 #
-#   plan      what this run does (publish, stage or rollback), and whether the CDN is set up at all
+#   plan      what this run does (publish or rollback), and whether the CDN is set up at all
 #   check     the unit tests, and the recipes match recipe/manifest.toml
 #   build     zip every resource at its tag and upload what is new to releases/<name>/<tag>/ (never replacing
-#             anything). The heavy job: it runs on vars.WHIP_HEAVY_RUNNER (e.g. "boat"), or ubuntu-latest.
+#             anything)
 #   verify    download every zip back through the public CDN URL and check it, as txAdmin will get it
-#   promote   publish the CDN recipes under recipes/<release>/, check them, then point recipes/*.yaml at them.
-#             Runs in the "cdn" environment, so it can wait for a maintainer's approval.
+#   promote   publish the CDN recipes under recipes/<release>/, check them, then point recipes/*.yaml at them
 #   rollback  (Run workflow > rollback) point recipes/*.yaml back at an earlier release, and check them
 #
-# A push to main that changes the manifest publishes a release, and so does each Recipe update run (when a resource
-# publishes a release, tools/recipe_update.py moves its tag in the manifest). A resource repo can also call this
-# workflow when it publishes a release ("stage": build, upload and verify that one resource, without changing any
-# recipe), so the zips are already on the CDN when the manifest moves to the new tag: see templates/release-zips.yml.
+# A push to main that changes the manifest publishes a release. That includes each Recipe update (when a resource
+# publishes a release, tools/recipe_update.py moves its tag in the manifest): it pushes as the WHIP Recipes app, and
+# an app's pushes start workflows.
+#
+# The R2 key is a secret of the "cdn" environment, which only main can use: build, promote and rollback run in it.
+# Everything runs on GitHub's own runners.
 name: CDN
 
 on:
@@ -25,13 +26,6 @@ on:
       - tools/recipes.py
       - tools/release_zips.py
       - .github/workflows/cdn.yml
-  # The Recipe update (recipe-update.yml) pushes its moves with the workflow's own token, and GitHub starts no push
-  # workflows for those: this picks them up when it finishes. A run that moved nothing publishes nothing (promote sees
-  # the CDN already serves the same recipes).
-  workflow_run:
-    workflows: [Recipe update]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
     inputs:
       action:
@@ -43,44 +37,18 @@ on:
         description: "rollback: the release to go back to (listed in recipes/releases.json and each run's summary)"
         type: string
         required: false
-  workflow_call:
-    inputs:
-      resource:
-        description: The resource to stage, e.g. whip_media_props
-        type: string
-        required: true
-      tag:
-        description: Its release's tag
-        type: string
-        required: true
-      cdn_base:
-        description: The CDN's public URL, e.g. https://cdn.example.com
-        type: string
-        required: true
-      runner:
-        description: The runner for the heavy jobs, e.g. boat
-        type: string
-        required: false
-        default: ubuntu-latest
-    secrets:
-      R2_ACCOUNT_ID:
-        required: true
-      R2_ACCESS_KEY_ID:
-        required: true
-      R2_SECRET_ACCESS_KEY:
-        required: true
-      R2_BUCKET:
-        required: true
-      CF_API_TOKEN:  # staging never purges, but the promote job names them
-        required: false
-      CF_ZONE_ID:
-        required: false
+
+# One run at a time, in the order they were started: the last push always goes live last. GitHub keeps only the
+# newest run waiting, which is enough, since each publishes the whole manifest at its commit.
+concurrency:
+  group: whip-cdn
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 env:
-  WHIP_CDN_BASE: ${{ inputs.cdn_base || vars.WHIP_CDN_BASE }}
+  WHIP_CDN_BASE: ${{ vars.WHIP_CDN_BASE }}
   PYTHONDONTWRITEBYTECODE: "1"
 
 jobs:
@@ -94,16 +62,14 @@ jobs:
     steps:
       - id: plan
         env:
-          RESOURCE: ${{ inputs.resource }}
           ACTION: ${{ inputs.action }}
-          HAS_KEYS: ${{ secrets.R2_ACCOUNT_ID != '' && secrets.R2_ACCESS_KEY_ID != '' && secrets.R2_SECRET_ACCESS_KEY != '' && secrets.R2_BUCKET != '' }}
         run: |
           set -euo pipefail
-          if [ -n "$RESOURCE" ]; then mode=stage; elif [ "$ACTION" = rollback ]; then mode=rollback; else mode=publish; fi
+          if [ "$ACTION" = rollback ]; then mode=rollback; else mode=publish; fi
           ready=true
-          if [ "$HAS_KEYS" != true ] || [ -z "$WHIP_CDN_BASE" ]; then
+          if [ -z "$WHIP_CDN_BASE" ]; then
             ready=false
-            echo "::notice::The CDN isn't set up here (the R2_* secrets and the WHIP_CDN_BASE variable): nothing to publish. See docs/cdn.md."
+            echo "::notice::The CDN isn't set up here (the WHIP_CDN_BASE variable): nothing to publish. See docs/cdn.md."
           fi
           {
             echo "mode=$mode"
@@ -114,14 +80,12 @@ jobs:
 
   check:
     needs: plan
-    if: needs.plan.outputs.ready == 'true' && needs.plan.outputs.mode != 'rollback'
+    if: needs.plan.outputs.ready == 'true' && needs.plan.outputs.mode == 'publish'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          repository: ${{ needs.plan.outputs.mode == 'stage' && 'WHIPFX/txAdmin-recipe' || github.repository }}
-          ref: ${{ needs.plan.outputs.mode == 'stage' && 'main' || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
@@ -133,43 +97,26 @@ jobs:
 
   build:
     needs: [plan, check]
-    runs-on: ${{ inputs.runner || vars.WHIP_HEAVY_RUNNER || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     timeout-minutes: 60
+    environment: cdn
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          repository: ${{ needs.plan.outputs.mode == 'stage' && 'WHIPFX/txAdmin-recipe' || github.repository }}
-          ref: ${{ needs.plan.outputs.mode == 'stage' && 'main' || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.13"
-      - name: The aws CLI (R2's S3 API)
-        run: |
-          set -euo pipefail
-          if ! command -v aws >/dev/null 2>&1; then
-            curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "$RUNNER_TEMP/awscli.zip"
-            unzip -q "$RUNNER_TEMP/awscli.zip" -d "$RUNNER_TEMP/awscli"
-            "$RUNNER_TEMP/awscli/aws/install" -i "$RUNNER_TEMP/aws-cli" -b "$RUNNER_TEMP/bin"
-            echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
-            "$RUNNER_TEMP/bin/aws" --version
-          else
-            aws --version
-          fi
       - name: Build the zips (a resource already in the bucket at its tag is not built again)
         env:
-          MODE: ${{ needs.plan.outputs.mode }}
-          RESOURCE: ${{ inputs.resource }}
-          TAG: ${{ inputs.tag }}
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
         run: |
           set -euo pipefail
-          only=()
-          if [ "$MODE" = stage ]; then only=(--only "$RESOURCE" --tag "$TAG"); fi
-          python -I tools/cdn.py build --store "s3:$R2_BUCKET" --dist dist "${only[@]}"
+          aws --version
+          python -I tools/cdn.py build --store "s3:$R2_BUCKET" --dist dist
       - name: Upload the new zips (never replacing an object)
         env:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
@@ -188,13 +135,11 @@ jobs:
 
   verify:
     needs: [plan, build]
-    runs-on: ${{ inputs.runner || vars.WHIP_HEAVY_RUNNER || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          repository: ${{ needs.plan.outputs.mode == 'stage' && 'WHIPFX/txAdmin-recipe' || github.repository }}
-          ref: ${{ needs.plan.outputs.mode == 'stage' && 'main' || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
@@ -204,14 +149,9 @@ jobs:
           name: cdn-index
           path: dist/index
       - name: Download every zip through the CDN and check it
-        env:
-          MODE: ${{ needs.plan.outputs.mode }}
-          RESOURCE: ${{ inputs.resource }}
         run: |
           set -euo pipefail
-          only=()
-          if [ "$MODE" = stage ]; then only=(--only "$RESOURCE"); fi
-          python -I tools/cdn.py verify --dist dist "${only[@]}" | tee verify.log
+          python -I tools/cdn.py verify --dist dist | tee verify.log
           { echo "### Verify through $WHIP_CDN_BASE"; echo; echo '```'; cat verify.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
@@ -224,13 +164,12 @@ jobs:
 
   promote:
     needs: [plan, verify]
-    if: needs.plan.outputs.mode == 'publish'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: cdn
-    concurrency:
-      group: whip-cdn-recipes
-      cancel-in-progress: false
+    env:
+      # A re-run of this job gets a release id of its own: the first attempt may have written part of its release.
+      RELEASE_ID: ${{ needs.plan.outputs.release_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -244,8 +183,6 @@ jobs:
           name: cdn-verified
           path: dist
       - name: txAdmin's recipe parser accepts the CDN recipes
-        env:
-          RELEASE_ID: ${{ needs.plan.outputs.release_id }}
         run: |
           set -euo pipefail
           python -I tools/cdn.py render --dist dist --release-id "$RELEASE_ID"
@@ -253,7 +190,6 @@ jobs:
           NODE_PATH="$RUNNER_TEMP/js/node_modules" node tools/validate_recipes.cjs dist/recipes/*.yaml
       - name: Publish the recipes, check them, then make them the stable ones
         env:
-          RELEASE_ID: ${{ needs.plan.outputs.release_id }}
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -280,9 +216,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: cdn
-    concurrency:
-      group: whip-cdn-recipes
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:

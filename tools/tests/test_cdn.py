@@ -145,8 +145,10 @@ class S3(unittest.TestCase):
 
 
 def git(*args: str, cwd: Path) -> None:
-    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.com", *args], cwd=cwd, check=True,
-                   capture_output=True)
+    # No signing: a developer's own git config may sign every commit and tag
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.com",
+                    "-c", "commit.gpgSign=false", "-c", "tag.gpgSign=false", *args],
+                   cwd=cwd, check=True, capture_output=True)
 
 
 class Pipeline(unittest.TestCase):
