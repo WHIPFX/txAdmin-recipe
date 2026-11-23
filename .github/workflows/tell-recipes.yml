@@ -1,12 +1,12 @@
 # Starts the recipe update here (recipe-update.yml) for a resource repo that has published a release. Each resource repo
-# calls this from .github/workflows/recipes.yml (templates/recipes.yml) with the org secret WHIP_RECIPE_TOKEN: a token
-# that can only start workflows in this repo (Actions: read and write on txAdmin-recipe, nothing else).
+# calls this from .github/workflows/recipes.yml (templates/recipes.yml) with the org secret WHIP_RECIPE_APP_KEY, the
+# WHIP Recipes app's key; the token made from it here can only start workflows in this repo.
 name: Tell the recipes
 
 on:
   workflow_call:
     secrets:
-      token:
+      app_key:
         required: true
 
 jobs:
@@ -14,9 +14,19 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
+      - name: The app's token
+        id: app
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: Iv23litWjw8TT96BndEg  # WHIP Recipes, github.com/apps/whip-recipes
+          private-key: ${{ secrets.app_key }}
+          owner: WHIPFX
+          repositories: txAdmin-recipe
+          permission-actions: write
+
       - name: Start the recipe update
         env:
-          GH_TOKEN: ${{ secrets.token }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
           gh workflow run recipe-update.yml -R WHIPFX/txAdmin-recipe \

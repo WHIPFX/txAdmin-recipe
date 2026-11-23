@@ -28,7 +28,7 @@ tasks:
   # ---- WHIP ----------------------------------------------------------------------------------------------------------
   - action: download_github
     src: WHIPFX/whip_core
-    ref: v1.1.0
+    ref: v1.3.0
     dest: ./resources/whip_core
 
   - action: download_github
@@ -38,12 +38,12 @@ tasks:
 
   - action: download_github
     src: WHIPFX/whip_autos_shop
-    ref: v1.0.0
+    ref: v1.0.1
     dest: ./resources/whip_autos_shop
 
   - action: download_github
     src: WHIPFX/whip_chat
-    ref: v1.1.0
+    ref: v1.2.0
     dest: ./resources/whip_chat
 
   - action: download_github
@@ -251,9 +251,9 @@ tasks:
     timeoutSeconds: 1800
 
   # ---- WHIP's map packs, in [assets] ---------------------------------------------------------------------------------
-  # whip_homes_mirrorpark v1.0.0, as its release's zips (made by tools/release_zips.py)
+  # whip_homes_mirrorpark v1.0.1, as its release's zips (made by tools/release_zips.py)
   - action: download_file
-    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.0/whip_homes_mirrorpark-1.zip
+    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.1/whip_homes_mirrorpark-1.zip
     path: ./tmp/whip_homes_mirrorpark-1.zip
 
   - action: unzip
@@ -262,7 +262,7 @@ tasks:
     timeoutSeconds: 1800
 
   - action: download_file
-    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.0/whip_homes_mirrorpark-2.zip
+    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.1/whip_homes_mirrorpark-2.zip
     path: ./tmp/whip_homes_mirrorpark-2.zip
 
   - action: unzip
@@ -271,7 +271,7 @@ tasks:
     timeoutSeconds: 1800
 
   - action: download_file
-    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.0/whip_homes_mirrorpark-3.zip
+    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.1/whip_homes_mirrorpark-3.zip
     path: ./tmp/whip_homes_mirrorpark-3.zip
 
   - action: unzip

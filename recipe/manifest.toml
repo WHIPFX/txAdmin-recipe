@@ -52,7 +52,7 @@ title = "WHIP"
 [[section.resource]]
 name = "whip_core"
 repo = "WHIPFX/whip_core"
-tag = "v1.1.0"
+tag = "v1.3.0"
 dest = "./resources/whip_core"
 github = "source"
 
@@ -66,14 +66,14 @@ github = "source"
 [[section.resource]]
 name = "whip_autos_shop"
 repo = "WHIPFX/whip_autos_shop"
-tag = "v1.0.0"
+tag = "v1.0.1"
 dest = "./resources/whip_autos_shop"
 github = "source"
 
 [[section.resource]]
 name = "whip_chat"
 repo = "WHIPFX/whip_chat"
-tag = "v1.1.0"
+tag = "v1.2.0"
 dest = "./resources/whip_chat"
 github = "source"
 
@@ -185,7 +185,7 @@ title = "WHIP's map packs, in [assets]"
 [[section.resource]]
 name = "whip_homes_mirrorpark"
 repo = "WHIPFX/whip_homes_mirrorpark"
-tag = "v1.0.0"
+tag = "v1.0.1"
 dest = "./resources/[assets]/whip_homes_mirrorpark"
 github = "release-zips"
 parts = 3

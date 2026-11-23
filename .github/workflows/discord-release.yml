@@ -1,0 +1,38 @@
+# Posts a WHIP resource's release to Discord with its changelog (tools/discord_release.mjs). The resource repos call this
+# when they publish a release; templates/discord-release.yml is what each of them has. The webhook is the org secret
+# WHIP_DISCORD_RELEASES, which the caller passes in.
+name: Discord release
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The release's tag
+        required: true
+        type: string
+    secrets:
+      webhook:
+        required: true
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read        # the release and the commits between tags
+      pull-requests: read   # each PR's title
+    steps:
+      - name: Get the script
+        uses: actions/checkout@v7
+        with:
+          repository: WHIPFX/txAdmin-recipe
+          ref: main
+          path: recipe
+          persist-credentials: false
+
+      - name: Post to Discord
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_WEBHOOK: ${{ secrets.webhook }}
+          TAG: ${{ inputs.tag }}
+        run: node recipe/tools/discord_release.mjs "$GITHUB_REPOSITORY" "$TAG"
