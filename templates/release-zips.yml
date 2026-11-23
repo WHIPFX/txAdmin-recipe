@@ -1,10 +1,5 @@
 # Attaches the zips the WHIP txAdmin recipes download to each release of this resource (on GitHub, by the workflow in
 # WHIPFX/txAdmin-recipe). To redo an existing release's zips: Actions > Release zips > Run workflow, with its tag.
-#
-# Once WHIPFX has set up the CDN (WHIPFX/txAdmin-recipe docs/cdn.md), the cdn job also stages the release there:
-# it zips this resource at the tag, uploads the zips to the CDN and checks them, without changing any recipe. It only
-# runs when the WHIP_CDN_BASE variable is set (an organization variable covers every repo), and needs the R2_*
-# secrets (organization secrets, or this repo's).
 name: Release zips
 
 on:
@@ -24,19 +19,3 @@ jobs:
     with:
       tag: ${{ github.event.release.tag_name || inputs.tag }}
       dest: "{{DEST}}"
-
-  cdn:
-    if: vars.WHIP_CDN_BASE != ''
-    permissions:
-      contents: read
-    uses: WHIPFX/txAdmin-recipe/.github/workflows/cdn.yml@main
-    with:
-      resource: ${{ github.event.repository.name }}
-      tag: ${{ github.event.release.tag_name || inputs.tag }}
-      cdn_base: ${{ vars.WHIP_CDN_BASE }}
-      runner: ${{ vars.WHIP_HEAVY_RUNNER || 'ubuntu-latest' }}
-    secrets:
-      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-      R2_BUCKET: ${{ secrets.R2_BUCKET }}

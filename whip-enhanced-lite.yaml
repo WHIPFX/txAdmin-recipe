@@ -12,8 +12,7 @@
 # release (tools/release_zips.py), then puts their tasks here. Their unzips get 1800 seconds: some servers (a slow disk,
 # or antivirus checking each new file) take more than the 180 txAdmin allows by default to write a few thousand small
 # files.
-# Each download_github is one call to GitHub's API (60 an hour without a token): 13 here. A server that can't reach
-# GitHub can use the same recipe from WHIP's CDN: see the README.
+# Each download_github is one call to GitHub's API (60 an hour without a token): 13 here.
 #
 # The lite recipe: everything except the heavy packs (whip_media_clothing_male, whip_media_clothing_female,
 # whip_media_props, whip_media_previews, whip_media_map and whip_homes_mirrorpark), so it downloads and unzips far less.
