@@ -18,6 +18,8 @@
 #              "release-zips"   the zips tools/release_zips.py attached to the release; parts = how many
 #              "release-asset"  one file attached to the release (asset = its name), unzipped into dest
 #   heavy    true for the packs the lite recipes leave out (the media packs and the Mirror Park homes)
+#   pictures true for the picture packs whose files WHIP's CDN serves (tools/media.py, .github/workflows/media.yml):
+#            whip_core loads a picture from media.whipfx.net when its pack is not installed
 #   note     an optional comment line above its tasks; {tag} is replaced with its tag
 #
 # The CDN recipes ignore github/parts/asset: CI zips every resource at its tag itself (tools/cdn.py).
@@ -141,6 +143,7 @@ dest = "./resources/[assets]/[media]/whip_media_clothing_male"
 github = "release-zips"
 parts = 4
 heavy = true
+pictures = true
 
 [[section.resource]]
 name = "whip_media_clothing_female"
@@ -150,6 +153,7 @@ dest = "./resources/[assets]/[media]/whip_media_clothing_female"
 github = "release-zips"
 parts = 4
 heavy = true
+pictures = true
 
 [[section.resource]]
 name = "whip_media_props"
@@ -159,6 +163,7 @@ dest = "./resources/[assets]/[media]/whip_media_props"
 github = "release-zips"
 parts = 3
 heavy = true
+pictures = true
 
 [[section.resource]]
 name = "whip_media_previews"
@@ -168,6 +173,7 @@ dest = "./resources/[assets]/[media]/whip_media_previews"
 github = "release-zips"
 parts = 3
 heavy = true
+pictures = true
 
 [[section.resource]]
 name = "whip_media_map"

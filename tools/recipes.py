@@ -39,6 +39,7 @@ class Resource:
     parts: int = 0
     asset: str = ""
     heavy: bool = False
+    pictures: bool = False
     note: str = ""
 
 
