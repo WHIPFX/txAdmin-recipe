@@ -32,11 +32,32 @@ can't be added to a server you already have.
    | FiveM Legacy | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-legacy.yaml` |
    | GTA V Enhanced | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-enhanced.yaml` |
 
+   **On a slow connection or disk, use the lite recipe:** the same URL ending in `-lite.yaml` (`whip-legacy-lite.yaml`,
+   `whip-enhanced-lite.yaml`). It leaves out the heavy packs (the five media packs and the Mirror Park homes, most of
+   the download and thousands of small files to unzip), so it finishes much sooner. It writes `get-whip-media.ps1` and
+   `get-whip-media.sh` into the server folder: once the install is done, stop the server and run one of them to add the
+   heavy packs.
+
+   - Windows: `powershell -ExecutionPolicy Bypass -File get-whip-media.ps1`
+   - Linux: `sh get-whip-media.sh` (it needs `curl` and `unzip`)
+
+   They download each zip, check it, and unzip it into its folder. If one stops, run it again: it keeps the zips it
+   already has. Until then the server runs, with no pictures in the inventory and catalogues and no Mirror Park homes.
+
 2. Enter your server license key (from [portal.cfx.re](https://portal.cfx.re)) and your database login. txAdmin
    downloads WHIP and oxmysql, creates an empty database, turns on OneSync, writes `server.cfg` and makes your txAdmin
    account an admin. There's no SQL file to import: WHIP creates its own tables.
 3. Start the server. On Windows, the first start asks whether to let `livekit-server.exe` through the firewall: click
    **Allow**. You can also run `resources/whip_voice/service/Open voice ports.bat`.
+
+### If the install fails
+
+- **A task `timed out after 180s`**, or a download that stops part way: the connection is too slow for txAdmin's 150
+  seconds per download. Use the lite recipe, then `get-whip-media`, which has no time limit.
+- **An unzip that times out**: a slow disk, or antivirus checking each new file. The lite recipe leaves the unzips with
+  thousands of files to `get-whip-media`, outside txAdmin's limits.
+
+Delete the half-made server folder before you try again: txAdmin only deploys into an empty folder.
 
 ### First run
 

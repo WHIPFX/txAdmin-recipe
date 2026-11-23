@@ -1,0 +1,232 @@
+# The one list of what a WHIP install is: every resource, at the tag it installs, and where it goes.
+#
+# tools/recipes.py makes every recipe from this file and the two server.*.cfg next to it:
+#   whip-legacy.yaml, whip-enhanced.yaml            the full install, from GitHub
+#   whip-legacy-lite.yaml, whip-enhanced-lite.yaml  everything but the heavy packs, from GitHub
+# and, when CI publishes a release to the CDN, the same four with every download from the CDN.
+# When a WHIPFX resource publishes a release, the Recipe update (tools/recipe_update.py) moves its tag (and parts) here,
+# runs tools/recipes.py and pushes both to main. bob74_ipl and oxmysql are by hand: change a tag here, run
+# `python tools/recipes.py`, and commit both. CI fails if they disagree.
+#
+# Each resource has:
+#   name     its folder name
+#   repo     owner/name on GitHub
+#   tag      the release it installs
+#   dest     its folder in the server
+#   github   how the GitHub recipes get it:
+#              "source"         download_github of the tag (GitHub zips it on request)
+#              "release-zips"   the zips tools/release_zips.py attached to the release; parts = how many
+#              "release-asset"  one file attached to the release (asset = its name), unzipped into dest
+#   heavy    true for the packs the lite recipes leave out (the media packs and the Mirror Park homes)
+#   note     an optional comment line above its tasks; {tag} is replaced with its tag
+#
+# The CDN recipes ignore github/parts/asset: CI zips every resource at its tag itself (tools/cdn.py).
+
+[recipe]
+version = "1.0.0"
+author = "WHIPFX"
+# The largest zip CI makes for the CDN, and the slowest connection a part must still finish on within txAdmin's
+# 150 seconds per download. 40 MiB at 3 Mbit/s takes 112 s. Raising one means checking the other: the verify step
+# fails a release whose parts would not finish in 90% of 150 s at min_mbit.
+max_part_mib = 40
+min_mbit = 3
+
+[platform.legacy]
+title = "Legacy (FXServer)"
+name = "WHIP"
+lite_name = "WHIP Lite"
+min_fx_version = 38435
+min_fx_note = "FXServer artifact 38435 or newer (sv_enforceSteamAuth alone needs 38004)"
+server_cfg = "server.legacy.cfg"
+
+[platform.enhanced]
+title = "GTA V Enhanced (cfx-server)"
+name = "WHIP (Enhanced)"
+lite_name = "WHIP Lite (Enhanced)"
+server_cfg = "server.enhanced.cfg"
+
+# ---- WHIP ------------------------------------------------------------------------------------------------------------
+[[section]]
+title = "WHIP"
+
+[[section.resource]]
+name = "whip_core"
+repo = "WHIPFX/whip_core"
+tag = "v1.3.0"
+dest = "./resources/whip_core"
+github = "source"
+
+[[section.resource]]
+name = "whip_autos"
+repo = "WHIPFX/whip_autos"
+tag = "v1.0.0"
+dest = "./resources/whip_autos"
+github = "source"
+
+[[section.resource]]
+name = "whip_autos_shop"
+repo = "WHIPFX/whip_autos_shop"
+tag = "v1.0.1"
+dest = "./resources/whip_autos_shop"
+github = "source"
+
+[[section.resource]]
+name = "whip_chat"
+repo = "WHIPFX/whip_chat"
+tag = "v1.2.0"
+dest = "./resources/whip_chat"
+github = "source"
+
+[[section.resource]]
+name = "whip_dealership"
+repo = "WHIPFX/whip_dealership"
+tag = "v1.0.0"
+dest = "./resources/whip_dealership"
+github = "source"
+
+[[section.resource]]
+name = "whip_fuel"
+repo = "WHIPFX/whip_fuel"
+tag = "v1.0.0"
+dest = "./resources/whip_fuel"
+github = "source"
+
+[[section.resource]]
+name = "whip_gunny"
+repo = "WHIPFX/whip_gunny"
+tag = "v2.0.1"
+dest = "./resources/whip_gunny"
+github = "release-zips"
+parts = 4
+note = "whip_gunny {tag}, as its release's zips (made by tools/release_zips.py)"
+
+[[section.resource]]
+name = "whip_loadingscreen"
+repo = "WHIPFX/whip_loadingscreen"
+tag = "v1.6.2"
+dest = "./resources/whip_loadingscreen"
+github = "source"
+
+[[section.resource]]
+name = "whip_phone"
+repo = "WHIPFX/whip_phone"
+tag = "v1.1.0"
+dest = "./resources/whip_phone"
+github = "source"
+
+[[section.resource]]
+name = "whip_rope"
+repo = "WHIPFX/whip_rope"
+tag = "v1.0.0"
+dest = "./resources/whip_rope"
+github = "source"
+
+[[section.resource]]
+name = "whip_voice"
+repo = "WHIPFX/whip_voice"
+tag = "v1.0.0"
+dest = "./resources/whip_voice"
+github = "source"
+
+# ---- The media packs -------------------------------------------------------------------------------------------------
+[[section]]
+title = "WHIP's media packs, in [assets]/[media]"
+note = "Each as its release's zips, made by tools/release_zips.py"
+
+[[section.resource]]
+name = "whip_media_clothing_male"
+repo = "WHIPFX/whip_media_clothing_male"
+tag = "v1.0.0"
+dest = "./resources/[assets]/[media]/whip_media_clothing_male"
+github = "release-zips"
+parts = 4
+heavy = true
+
+[[section.resource]]
+name = "whip_media_clothing_female"
+repo = "WHIPFX/whip_media_clothing_female"
+tag = "v1.0.0"
+dest = "./resources/[assets]/[media]/whip_media_clothing_female"
+github = "release-zips"
+parts = 4
+heavy = true
+
+[[section.resource]]
+name = "whip_media_props"
+repo = "WHIPFX/whip_media_props"
+tag = "v1.0.0"
+dest = "./resources/[assets]/[media]/whip_media_props"
+github = "release-zips"
+parts = 3
+heavy = true
+
+[[section.resource]]
+name = "whip_media_previews"
+repo = "WHIPFX/whip_media_previews"
+tag = "v1.0.0"
+dest = "./resources/[assets]/[media]/whip_media_previews"
+github = "release-zips"
+parts = 3
+heavy = true
+
+[[section.resource]]
+name = "whip_media_map"
+repo = "WHIPFX/whip_media_map"
+tag = "v1.0.0"
+dest = "./resources/[assets]/[media]/whip_media_map"
+github = "release-zips"
+parts = 1
+heavy = true
+
+# ---- The map packs ---------------------------------------------------------------------------------------------------
+[[section]]
+title = "WHIP's map packs, in [assets]"
+
+[[section.resource]]
+name = "whip_homes_mirrorpark"
+repo = "WHIPFX/whip_homes_mirrorpark"
+tag = "v1.0.1"
+dest = "./resources/[assets]/whip_homes_mirrorpark"
+github = "release-zips"
+parts = 3
+heavy = true
+note = "whip_homes_mirrorpark {tag}, as its release's zips (made by tools/release_zips.py)"
+
+[[section.resource]]
+name = "whip_graphics"
+repo = "WHIPFX/whip_graphics"
+tag = "v2.1.0"
+dest = "./resources/[assets]/whip_graphics"
+github = "source"
+
+# ---- Other authors' resources ----------------------------------------------------------------------------------------
+[[section]]
+title = "Chameleon Paint, in [assets]: WildBrick142's ramps for whip_autos' Chameleon paints (theirs, not WHIP's)"
+
+[[section.resource]]
+name = "chameleon_paint"
+repo = "WHIPFX/chameleon_paint"
+tag = "v2.0.0"
+dest = "./resources/[assets]/chameleon_paint"
+github = "source"
+
+[[section]]
+title = "bob74_ipl, in [assets]: Bob74's IPL loader, which fills the map's holes and opens GTA Online's interiors"
+
+[[section.resource]]
+name = "bob74_ipl"
+repo = "Bob74/bob74_ipl"
+tag = "2.7.1"
+dest = "./resources/[assets]/bob74_ipl"
+github = "source"
+
+[[section]]
+title = "oxmysql: WHIPFX's fork (2.14.3 with the P-001 fix), its release build, into [ox]"
+
+[[section.resource]]
+name = "oxmysql"
+repo = "WHIPFX/oxmysql"
+tag = "v2.14.3-whip.1"
+dest = "./resources/[ox]"
+github = "release-asset"
+asset = "oxmysql.zip"
