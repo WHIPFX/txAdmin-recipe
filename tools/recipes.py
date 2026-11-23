@@ -215,6 +215,9 @@ foreach ($p in $parts) {{
         if ($try -gt 1) {{ Write-Host '  It failed: trying again'; Start-Sleep -Seconds 5 }}
         Write-Host "Downloading $url"
         try {{
+            # WebClient sends no User-Agent, and clears one set on it after each download. Sites behind Cloudflare
+            # refuse a request without one.
+            $web.Headers['User-Agent'] = 'WHIP get-whip-media'
             $web.DownloadFile($url, "$file.part")
             [IO.File]::Delete($file)
             [IO.File]::Move("$file.part", $file)
