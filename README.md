@@ -5,22 +5,18 @@ money in the bank, buy, fuel and tune cars, own and furnish a home, and get hurt
 from inside the game: `/whip` opens a panel for players, items, settings, banks, garages, shops and homes.
 
 This repository holds the txAdmin recipes that install WHIP. The framework itself lives in the
-[resource repositories](#whats-included). The recipes use txAdmin's
-[recipe format](https://github.com/citizenfx/txAdmin/blob/master/docs/recipe.md).
+[resource repositories](#whats-included).
 
 ## Requirements
 
 - A FiveM server with txAdmin, on either game:
   - **FiveM Legacy**: FXServer, artifact 38435 or newer
   - **GTA V Enhanced**: cfx-server
-- MariaDB 10.2.3+ or MySQL 8.0.16+, and a database user that can create databases.
-- About 1 GB of free disk space.
-- At least 3 Mbit/s to GitHub. txAdmin gives each download 150 seconds, and the largest is 40 MiB.
-- The voice ports open inbound, like port 30120: **UDP 7882-7893** and **TCP 7881**. WHIP runs its own voice server
-  on the same machine and sets it up on the first start.
+- MariaDB 10.2.3+ or MySQL 8.0.16+, and a database user that can create databases
+- About 1 GB of free disk space, and at least 3 Mbit/s to GitHub
+- The voice ports open inbound, like port 30120: **UDP 7882-7893** and **TCP 7881**
 
-WHIP installs as a **new server**. The recipe builds the whole server (resources, database and `server.cfg`), so it
-can't be added to a server you already have.
+WHIP installs as a **new server**: it can't be added to a server you already have.
 
 ## Install
 
@@ -32,45 +28,42 @@ can't be added to a server you already have.
    | FiveM Legacy | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-legacy.yaml` |
    | GTA V Enhanced | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-enhanced.yaml` |
 
-   **WHIP's pictures and videos come from WHIP's CDN** (`media.whipfx.net`): the clothing, furniture, vehicle, NPC
-   and tattoo pictures and the emote videos load as a screen shows them, so they are neither installed nor
-   downloaded by every player on joining. To keep them on your own server instead, stop it once the install is done
-   and run one of the scripts the recipe writes into the server folder. Each installed pack then serves its own
-   pictures.
-
-   - Windows: `powershell -ExecutionPolicy Bypass -File get-whip-media.ps1`
-   - Linux: `sh get-whip-media.sh` (it needs `curl` and `unzip`)
-
-   They download each zip, check it, and unzip it into its folder. If one stops, run it again: it keeps the zips it
-   already has.
-
 2. Enter your server license key (from [portal.cfx.re](https://portal.cfx.re)) and your database login. txAdmin
-   downloads WHIP and oxmysql, creates an empty database, turns on OneSync, writes `server.cfg` and makes your txAdmin
-   account an admin. There's no SQL file to import: WHIP creates its own tables.
-3. Start the server. On Windows, the first start asks whether to let `livekit-server.exe` through the firewall: click
-   **Allow**. You can also run `resources/whip_voice/service/Open voice ports.bat`.
+   installs WHIP, creates the database, writes `server.cfg` and makes your txAdmin account an admin. There's no SQL
+   file to import.
+3. Start the server. On Windows, allow `livekit-server.exe` through the firewall when asked: it's WHIP's voice server.
+
+WHIP's pictures and videos load from WHIP's CDN, so they aren't part of the install. To keep them on your own server,
+see [Pictures on your server](#pictures-on-your-server).
 
 ### If the install fails
 
-- **A task `timed out after 180s`**, or a download that stops part way: the connection is too slow for txAdmin's 150
-  seconds per download. Each download is 40 MiB at most, so it needs about 3 Mbit/s to GitHub.
-- **An unzip that times out**: a slow disk, or antivirus checking each new file. Try again, or pause the antivirus
-  for the install.
+Delete the half-made server folder first: txAdmin only installs into an empty folder. Then:
 
-Delete the half-made server folder before you try again: txAdmin only deploys into an empty folder.
+- **A download timed out**: the connection to GitHub is too slow. Try again.
+- **An unzip timed out**: a slow disk, or antivirus scanning each new file. Pause the antivirus and try again.
 
-### First run
+## First run
 
-1. Once the server has started, the console prints a **WHIP setup** report. Anything marked **FIX** tells you what to
-   change; with nothing to fix, `Framework loaded successfully!` follows. Type `whipsetup` to see the report again.
-2. Join the server. Your Cfx.re account needs a linked Steam account: the recipe turns on `sv_enforceSteamAuth`, and
-   FiveM asks players without one to link it.
-3. Make a character. The appearance editor opens.
-4. Press **F2** for the inventory. `/w` opens the quick tools and `/whip` opens the admin panel.
+1. The console prints a **WHIP setup** report. Change anything marked **FIX**; type `whipsetup` to see it again.
+2. Join the server. Your Cfx.re account needs a linked Steam account.
+3. Make a character. Press **F2** for the inventory; `/w` opens the quick tools and `/whip` the admin panel.
 
-To make someone else an admin, ask them to type `/w`. The console then prints the `add_ace` line to add for them.
+To make someone else an admin, ask them to type `/w`: the console prints the `add_ace` line to add for them.
 
-The full documentation is in `resources/whip_core/docs.html`. Open it in a browser; it works offline.
+The full documentation is `resources/whip_core/docs.html`. Open it in a browser; it works offline.
+
+## Pictures on your server
+
+The clothing, furniture, vehicle, NPC and tattoo pictures and the emote videos load from WHIP's CDN
+(`media.whipfx.net`) when a screen shows them. To keep them on your server instead, stop it and run the script the
+recipe put in the server folder:
+
+- Windows: `powershell -ExecutionPolicy Bypass -File get-whip-media.ps1`
+- Linux: `sh get-whip-media.sh` (it needs `curl` and `unzip`)
+
+If it stops, run it again: it keeps what it already has. On the next start, the installed packs serve their own
+pictures.
 
 ## Updating
 
@@ -86,12 +79,11 @@ Before you replace a folder, copy out anything the server saved in it:
 | Saved in | What it is |
 | --- | --- |
 | `whip_core/pack_exports` | Director packs you exported |
-| `whip_media_props/img/props`, `whip_media_previews/img/vehicles` | Pictures taken in game |
 | `whip_autos/engines.json` | The engine list, if you ran `/whiplashengines` |
 
 ## What's included
 
-In `resources`, each started by its own `ensure` line in `server.cfg`:
+In `resources`:
 
 | Resource | What it is |
 | --- | --- |
@@ -105,10 +97,17 @@ In `resources`, each started by its own `ensure` line in `server.cfg`:
 | [whip_voice](https://github.com/WHIPFX/whip_voice) | 3D voice chat, on a voice server it runs itself |
 | [whip_chat](https://github.com/WHIPFX/whip_chat), [whip_loadingscreen](https://github.com/WHIPFX/whip_loadingscreen) | Chat and the loading screen |
 
-In `resources/[assets]/[media]`, [whip_media_map](https://github.com/WHIPFX/whip_media_map): the pause menu's 3D map,
-GTA's blip icons and the radar's map tiles.
+In `resources/[assets]`:
 
-The picture packs come from WHIP's CDN instead, unless you install them with `get-whip-media` (above):
+| Resource | What it is |
+| --- | --- |
+| [whip_media_map](https://github.com/WHIPFX/whip_media_map) (in `[media]`) | The pause menu's 3D map, GTA's blip icons and the radar's map tiles |
+| [whip_homes_mirrorpark](https://github.com/WHIPFX/whip_homes_mirrorpark) | Every Mirror Park house as a walk-in home, plus 25 garages |
+| [whip_graphics](https://github.com/WHIPFX/whip_graphics) | LED streetlights, and WHIP's look for the city's lighting and sky |
+| [chameleon_paint](https://github.com/WHIPFX/chameleon_paint) | WildBrick142's Chameleon Paint: the colour ramps whip_autos' Chameleon paints need. It's the author's work under their own terms, not part of WHIP, and must never be sold |
+| [bob74_ipl](https://github.com/Bob74/bob74_ipl) | Bob74's IPL loader: it fills the holes in GTA's map and loads GTA Online's interiors. It's the author's work under the MIT licence, not part of WHIP |
+
+From WHIP's CDN, or in `resources/[assets]/[media]` if you [install them](#pictures-on-your-server):
 
 | Resource | What it is |
 | --- | --- |
@@ -116,26 +115,10 @@ The picture packs come from WHIP's CDN instead, unless you install them with `ge
 | [whip_media_props](https://github.com/WHIPFX/whip_media_props) | Pictures for the furniture catalog |
 | [whip_media_previews](https://github.com/WHIPFX/whip_media_previews) | Vehicle, NPC and tattoo pictures, and the emote menu's preview videos |
 
-In `resources/[assets]`, the map packs, Chameleon Paint and bob74_ipl:
+In `resources/[ox]`, [oxmysql](https://github.com/WHIPFX/oxmysql), WHIP's database library: WHIPFX's fork, where a
+query fails straight away when the database is down instead of waiting forever.
 
-| Resource | What it is |
-| --- | --- |
-| [whip_homes_mirrorpark](https://github.com/WHIPFX/whip_homes_mirrorpark) | Every Mirror Park house as a walk-in home, plus 25 garages |
-| [whip_graphics](https://github.com/WHIPFX/whip_graphics) | LED streetlights, and WHIP's look for the city's lighting and sky |
-| [chameleon_paint](https://github.com/WHIPFX/chameleon_paint) | WildBrick142's Chameleon Paint: the colour ramps whip_autos' Chameleon paints need. It's the author's work under their own terms, not part of WHIP, and must never be sold |
-| [bob74_ipl](https://github.com/Bob74/bob74_ipl) | Bob74's IPL loader: it fills the holes in GTA's map and loads GTA Online's interiors. It's the author's work under the MIT licence, not part of WHIP |
-
-`ensure [assets]` starts everything in `[assets]`.
-
-In `resources/[ox]`, [oxmysql](https://github.com/WHIPFX/oxmysql), which WHIP uses for its database. It's WHIPFX's
-fork of oxmysql with one fix: a query fails straight away when the database is down, instead of waiting forever.
-
-### FiveM Legacy and GTA V Enhanced
-
-Every resource runs on both games. Resources with models ship them twice: `stream/` for Legacy and
-`stream_enhanced/` for Enhanced. The two recipes differ only in `server.cfg`. The Enhanced recipe sets
-`setr whip_platform enhanced`, gives slow connections more time to download, and raises some of GTA's pool sizes with
-`increase_pool_size`. The Legacy recipe sets the game build with `sv_enforceGameBuild`.
+Every resource runs on both games. The two recipes differ only in `server.cfg`.
 
 ## License
 
