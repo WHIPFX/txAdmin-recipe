@@ -1,6 +1,6 @@
 """Makes the WHIP txAdmin recipes from recipe/manifest.toml, so every recipe installs the same list.
 
-    python tools/recipes.py           # write whip-legacy.yaml, whip-enhanced.yaml and their -lite variants
+    python tools/recipes.py           # write whip-legacy.yaml and whip-enhanced.yaml
     python tools/recipes.py --check   # exit 1 if a committed recipe differs from what the manifest makes (CI runs this)
 
 The recipes it writes into the repo download from GitHub. tools/cdn.py calls render() with source="cdn" to make the
@@ -25,7 +25,6 @@ UNZIP_TIMEOUT = 1800
 WIDTH = 120  # the recipes' comment lines are wrapped at this width
 MEDIA_SCRIPTS = ("get-whip-media.ps1", "get-whip-media.sh")
 
-Variant = Literal["full", "lite"]
 Source = Literal["github", "cdn"]
 
 
@@ -38,7 +37,6 @@ class Resource:
     github: Literal["source", "release-zips", "release-asset"]
     parts: int = 0
     asset: str = ""
-    heavy: bool = False
     pictures: bool = False
     note: str = ""
 
@@ -55,7 +53,6 @@ class Platform:
     key: str
     title: str
     name: str
-    lite_name: str
     server_cfg: str
     min_fx_version: int = 0
     min_fx_note: str = ""
@@ -165,15 +162,15 @@ def human_mb(n: int) -> str:
     return f"{round(n / 1_000_000):,} MB"
 
 
-def heavy_names(m: Manifest) -> str:
-    names = [r.name for r in m.resources if r.heavy]
+def picture_names(m: Manifest) -> str:
+    names = [r.name for r in m.resources if r.pictures]
     return ", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else "".join(names)
 
 
 def media_items(m: Manifest, source: Source, indexes: dict[str, dict] | None, base: str) -> list[tuple[Part, str]]:
     items: list[tuple[Part, str]] = []
     for r in m.resources:
-        if not r.heavy:
+        if not r.pictures:
             continue
         parts = cdn_parts(r, indexes[r.name], base) if source == "cdn" and indexes else github_parts(r)
         items += [(p, r.dest.removeprefix("./")) for p in parts]
@@ -183,9 +180,9 @@ def media_items(m: Manifest, source: Source, indexes: dict[str, dict] | None, ba
 def ps1_script(m: Manifest, items: list[tuple[Part, str]], where: str) -> str:
     rows = "\n".join(f"    ,@('{p.url}', '{dest}', {p.size}, '{p.sha256}')" for p, dest in items)
     head = "\n".join(comment(
-        f"Adds WHIP's heavy packs ({heavy_names(m)}) to a server installed with a WHIP lite recipe. It downloads "
-        f"{len(items)} zips from {where}, checks each one, and unzips it into its resource's folder. If it stops, "
-        "run it again: it keeps the zips it already has."))
+        f"Adds WHIP's picture packs ({picture_names(m)}) to this server, which otherwise loads their pictures from "
+        f"WHIP's CDN: installed, each serves its own. It downloads {len(items)} zips from {where}, checks each one, and "
+        "unzips it into its resource's folder. If it stops, run it again: it keeps the zips it already has."))
     return f"""{head}
 # Run it in this folder (the one with server.cfg), with the server stopped:
 #   powershell -ExecutionPolicy Bypass -File get-whip-media.ps1
@@ -245,9 +242,10 @@ Write-Host 'Done. Start the server: the ensure [assets] line in server.cfg start
 def sh_script(m: Manifest, items: list[tuple[Part, str]], where: str) -> str:
     rows = "\n".join(f"get '{p.url}' '{dest}' {p.size} '{p.sha256}'" for p, dest in items)
     head = "\n".join(comment(
-        f"Adds WHIP's heavy packs ({heavy_names(m)}) to a server installed with a WHIP lite recipe. It downloads "
-        f"{len(items)} zips from {where}, checks each one, and unzips it into its resource's folder. If it stops, "
-        "run it again: it keeps the zips it already has. It needs curl and unzip."))
+        f"Adds WHIP's picture packs ({picture_names(m)}) to this server, which otherwise loads their pictures from "
+        f"WHIP's CDN: installed, each serves its own. It downloads {len(items)} zips from {where}, checks each one, and "
+        "unzips it into its resource's folder. If it stops, run it again: it keeps the zips it already has. It needs "
+        "curl and unzip."))
     return f"""#!/bin/sh
 {head}
 # Run it in this folder (the one with server.cfg), with the server stopped:  sh get-whip-media.sh
@@ -291,7 +289,7 @@ echo "Done. Start the server: the ensure [assets] line in server.cfg starts the 
 """
 
 
-def render(m: Manifest, platform: str, variant: Variant, source: Source = "github",
+def render(m: Manifest, platform: str, source: Source = "github",
            indexes: dict[str, dict] | None = None, base: str = "", release_id: str = "") -> str:
     """One recipe. For source="cdn", indexes has each resource's build index and base is the CDN's URL."""
     p = m.platforms[platform]
@@ -306,7 +304,7 @@ def render(m: Manifest, platform: str, variant: Variant, source: Source = "githu
     for section in m.sections:
         body: list[str] = []
         for r in section.resources:
-            if variant == "lite" and r.heavy:
+            if r.pictures:
                 continue
             if source == "cdn":
                 parts: list[Part] | None = cdn_parts(r, indexes[r.name], base)  # type: ignore[index]
@@ -319,13 +317,12 @@ def render(m: Manifest, platform: str, variant: Variant, source: Source = "githu
             tasks += [rule(section.title)] + ([f"  # {section.note}"] if section.note else []) + body
     tasks += ["  - action: remove_path", "    path: ./tmp", ""]
 
-    if variant == "lite":
-        items = media_items(m, source, indexes, base)
-        tasks += [rule("The heavy packs: a separate download, once the install is done"),
-                  *comment("Run get-whip-media.ps1 (Windows) or get-whip-media.sh (Linux) in the server folder to "
-                           f"add {heavy_names(m)}.", "  ")]
-        for name, script in zip(MEDIA_SCRIPTS, (ps1_script(m, items, where), sh_script(m, items, where))):
-            tasks += ["  - action: write_file", f"    file: ./{name}", "    data: |", *block(script), ""]
+    items = media_items(m, source, indexes, base)
+    tasks += [rule("The picture packs: on WHIP's CDN, or a separate download"),
+              *comment(f"whip_core loads {picture_names(m)} from WHIP's CDN. To have them on the server instead, run "
+                       "get-whip-media.ps1 (Windows) or get-whip-media.sh (Linux) in the server folder.", "  ")]
+    for name, script in zip(MEDIA_SCRIPTS, (ps1_script(m, items, where), sh_script(m, items, where))):
+        tasks += ["  - action: write_file", f"    file: ./{name}", "    data: |", *block(script), ""]
 
     tasks += [rule("The database: empty. WHIP makes every table itself on its first start; there is no SQL file."),
               "  - action: connect_database", "",
@@ -356,33 +353,29 @@ def render(m: Manifest, platform: str, variant: Variant, source: Source = "githu
                         "at its tag, downloaded every zip back through the CDN to check it, and only then published this "
                         f"file (tools/cdn.py). Each zip is {m.max_part_mib:g} MiB or less, so it finishes within "
                         f"txAdmin's 150 seconds per download at {m.min_mbit:g} Mbit/s. Unzips get {UNZIP_TIMEOUT} seconds.")
-    if variant == "lite":
-        head.append("#")
-        head += comment(f"The lite recipe: everything except the heavy packs ({heavy_names(m)}), so it downloads and "
-                        "unzips far less. It writes get-whip-media.ps1 and get-whip-media.sh into the server folder: run "
-                        "one once the install is done to add the heavy packs, outside txAdmin's time limits. Until then "
-                        "the server has none of them.")
+    head.append("#")
+    head += comment(f"The picture packs ({picture_names(m)}) are not installed: whip_core loads each picture from WHIP's "
+                    "CDN (media.whipfx.net) the first time a screen shows it. To have them on the server instead, run "
+                    "get-whip-media.ps1 or get-whip-media.sh, which this recipe writes into the server folder.")
 
-    # txAdmin recommends a description under 256 characters: tests check every variant
-    size = f"Downloads {human_mb(total)} from WHIP's CDN." if source == "cdn" else (
-        "Downloads about 830 MB from GitHub." if variant == "full" else "")
-    lite = " Lite: no media packs or Mirror Park homes." if variant == "lite" else ""
+    # txAdmin recommends a description under 256 characters: the tests check each recipe
+    size = f"Downloads {human_mb(total)} from WHIP's CDN." if source == "cdn" else "Downloads about 300 MB from GitHub."
     desc = ("WHIP, a complete server base: characters, inventory, money and banks, jobs, cars, homes, and an admin panel "
-            f"in game (/whip). For a {p.title} server.{lite} {size}").strip()
+            f"in game (/whip). For a {p.title} server. {size}").strip()
     meta = ["$engine: 3", "$onesync: on"]
     if p.min_fx_version:
         meta.append(f"$minFxVersion: {p.min_fx_version}   # {p.min_fx_note}")
-    meta += [f"name: {p.lite_name if variant == 'lite' else p.name}", f"version: {m.version}", f"author: {m.author}",
+    meta += [f"name: {p.name}", f"version: {m.version}", f"author: {m.author}",
              "description: >-", *("  " + line for line in textwrap.wrap(desc, WIDTH - 4)), "", "tasks:"]
     return "\n".join(head + [""] + meta + tasks) + "\n"
 
 
-def file_name(platform: str, variant: Variant) -> str:
-    return f"whip-{platform}{'-lite' if variant == 'lite' else ''}.yaml"
+def file_name(platform: str) -> str:
+    return f"whip-{platform}.yaml"
 
 
 def render_all(m: Manifest, source: Source = "github", **kw) -> dict[str, str]:
-    return {file_name(p, v): render(m, p, v, source, **kw) for p in m.platforms for v in ("full", "lite")}
+    return {file_name(p): render(m, p, source, **kw) for p in m.platforms}
 
 
 def main(argv: list[str] | None = None) -> int:

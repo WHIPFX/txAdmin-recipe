@@ -32,17 +32,17 @@ can't be added to a server you already have.
    | FiveM Legacy | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-legacy.yaml` |
    | GTA V Enhanced | `https://raw.githubusercontent.com/WHIPFX/txAdmin-recipe/main/whip-enhanced.yaml` |
 
-   **On a slow connection or disk, use the lite recipe:** the same URL ending in `-lite.yaml` (`whip-legacy-lite.yaml`,
-   `whip-enhanced-lite.yaml`). It leaves out the heavy packs (the five media packs and the Mirror Park homes, most of
-   the download and thousands of small files to unzip), so it finishes much sooner. It writes `get-whip-media.ps1` and
-   `get-whip-media.sh` into the server folder: once the install is done, stop the server and run one of them to add the
-   heavy packs.
+   **WHIP's pictures and videos come from WHIP's CDN** (`media.whipfx.net`): the clothing, furniture, vehicle, NPC
+   and tattoo pictures and the emote videos load as a screen shows them, so they are neither installed nor
+   downloaded by every player on joining. To keep them on your own server instead, stop it once the install is done
+   and run one of the scripts the recipe writes into the server folder. Each installed pack then serves its own
+   pictures.
 
    - Windows: `powershell -ExecutionPolicy Bypass -File get-whip-media.ps1`
    - Linux: `sh get-whip-media.sh` (it needs `curl` and `unzip`)
 
    They download each zip, check it, and unzip it into its folder. If one stops, run it again: it keeps the zips it
-   already has. Until then the server runs, with no pictures in the inventory and catalogues and no Mirror Park homes.
+   already has.
 
 2. Enter your server license key (from [portal.cfx.re](https://portal.cfx.re)) and your database login. txAdmin
    downloads WHIP and oxmysql, creates an empty database, turns on OneSync, writes `server.cfg` and makes your txAdmin
@@ -53,9 +53,9 @@ can't be added to a server you already have.
 ### If the install fails
 
 - **A task `timed out after 180s`**, or a download that stops part way: the connection is too slow for txAdmin's 150
-  seconds per download. Use the lite recipe, then `get-whip-media`, which has no time limit.
-- **An unzip that times out**: a slow disk, or antivirus checking each new file. The lite recipe leaves the unzips with
-  thousands of files to `get-whip-media`, outside txAdmin's limits.
+  seconds per download. Each download is 40 MiB at most, so it needs about 3 Mbit/s to GitHub.
+- **An unzip that times out**: a slow disk, or antivirus checking each new file. Try again, or pause the antivirus
+  for the install.
 
 Delete the half-made server folder before you try again: txAdmin only deploys into an empty folder.
 
@@ -105,14 +105,16 @@ In `resources`, each started by its own `ensure` line in `server.cfg`:
 | [whip_voice](https://github.com/WHIPFX/whip_voice) | 3D voice chat, on a voice server it runs itself |
 | [whip_chat](https://github.com/WHIPFX/whip_chat), [whip_loadingscreen](https://github.com/WHIPFX/whip_loadingscreen) | Chat and the loading screen |
 
-In `resources/[assets]/[media]`, the media packs. They're kept out of whip_core so its updates stay small:
+In `resources/[assets]/[media]`, [whip_media_map](https://github.com/WHIPFX/whip_media_map): the pause menu's 3D map,
+GTA's blip icons and the radar's map tiles.
+
+The picture packs come from WHIP's CDN instead, unless you install them with `get-whip-media` (above):
 
 | Resource | What it is |
 | --- | --- |
 | [whip_media_clothing_male](https://github.com/WHIPFX/whip_media_clothing_male), [whip_media_clothing_female](https://github.com/WHIPFX/whip_media_clothing_female) | Clothing pictures for the character editor |
 | [whip_media_props](https://github.com/WHIPFX/whip_media_props) | Pictures for the furniture catalog |
 | [whip_media_previews](https://github.com/WHIPFX/whip_media_previews) | Vehicle, NPC and tattoo pictures, and the emote menu's preview videos |
-| [whip_media_map](https://github.com/WHIPFX/whip_media_map) | The pause menu's 3D map, GTA's blip icons and the radar's map tiles |
 
 In `resources/[assets]`, the map packs, Chameleon Paint and bob74_ipl:
 

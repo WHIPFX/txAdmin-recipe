@@ -13,6 +13,11 @@
 # or antivirus checking each new file) take more than the 180 txAdmin allows by default to write a few thousand small
 # files.
 # Each download_github is one call to GitHub's API (60 an hour without a token): 13 here.
+#
+# The picture packs (whip_media_clothing_male, whip_media_clothing_female, whip_media_props and whip_media_previews) are
+# not installed: whip_core loads each picture from WHIP's CDN (media.whipfx.net) the first time a screen shows it. To
+# have them on the server instead, run get-whip-media.ps1 or get-whip-media.sh, which this recipe writes into the server
+# folder.
 
 $engine: 3
 $onesync: on
@@ -21,7 +26,7 @@ version: 1.0.0
 author: WHIPFX
 description: >-
   WHIP, a complete server base: characters, inventory, money and banks, jobs, cars, homes, and an admin panel in game
-  (/whip). For a GTA V Enhanced (cfx-server) server. Downloads about 830 MB from GitHub.
+  (/whip). For a GTA V Enhanced (cfx-server) server. Downloads about 300 MB from GitHub.
 
 tasks:
   # ---- WHIP ----------------------------------------------------------------------------------------------------------
@@ -115,132 +120,6 @@ tasks:
   # ---- WHIP's media packs, in [assets]/[media] -----------------------------------------------------------------------
   # Each as its release's zips, made by tools/release_zips.py
   - action: download_file
-    url: https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-1.zip
-    path: ./tmp/whip_media_clothing_male-1.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_clothing_male-1.zip
-    dest: ./resources/[assets]/[media]/whip_media_clothing_male
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-2.zip
-    path: ./tmp/whip_media_clothing_male-2.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_clothing_male-2.zip
-    dest: ./resources/[assets]/[media]/whip_media_clothing_male
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-3.zip
-    path: ./tmp/whip_media_clothing_male-3.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_clothing_male-3.zip
-    dest: ./resources/[assets]/[media]/whip_media_clothing_male
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-4.zip
-    path: ./tmp/whip_media_clothing_male-4.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_clothing_male-4.zip
-    dest: ./resources/[assets]/[media]/whip_media_clothing_male
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-1.zip
-    path: ./tmp/whip_media_clothing_female-1.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_clothing_female-1.zip
-    dest: ./resources/[assets]/[media]/whip_media_clothing_female
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-2.zip
-    path: ./tmp/whip_media_clothing_female-2.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_clothing_female-2.zip
-    dest: ./resources/[assets]/[media]/whip_media_clothing_female
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-3.zip
-    path: ./tmp/whip_media_clothing_female-3.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_clothing_female-3.zip
-    dest: ./resources/[assets]/[media]/whip_media_clothing_female
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-4.zip
-    path: ./tmp/whip_media_clothing_female-4.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_clothing_female-4.zip
-    dest: ./resources/[assets]/[media]/whip_media_clothing_female
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-1.zip
-    path: ./tmp/whip_media_props-1.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_props-1.zip
-    dest: ./resources/[assets]/[media]/whip_media_props
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-2.zip
-    path: ./tmp/whip_media_props-2.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_props-2.zip
-    dest: ./resources/[assets]/[media]/whip_media_props
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-3.zip
-    path: ./tmp/whip_media_props-3.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_props-3.zip
-    dest: ./resources/[assets]/[media]/whip_media_props
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-1.zip
-    path: ./tmp/whip_media_previews-1.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_previews-1.zip
-    dest: ./resources/[assets]/[media]/whip_media_previews
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-2.zip
-    path: ./tmp/whip_media_previews-2.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_previews-2.zip
-    dest: ./resources/[assets]/[media]/whip_media_previews
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-3.zip
-    path: ./tmp/whip_media_previews-3.zip
-
-  - action: unzip
-    src: ./tmp/whip_media_previews-3.zip
-    dest: ./resources/[assets]/[media]/whip_media_previews
-    timeoutSeconds: 1800
-
-  - action: download_file
     url: https://github.com/WHIPFX/whip_media_map/releases/download/v1.0.0/whip_media_map-1.zip
     path: ./tmp/whip_media_map-1.zip
 
@@ -306,6 +185,143 @@ tasks:
 
   - action: remove_path
     path: ./tmp
+
+  # ---- The picture packs: on WHIP's CDN, or a separate download ------------------------------------------------------
+  # whip_core loads whip_media_clothing_male, whip_media_clothing_female, whip_media_props and whip_media_previews from
+  # WHIP's CDN. To have them on the server instead, run get-whip-media.ps1 (Windows) or get-whip-media.sh (Linux) in the
+  # server folder.
+  - action: write_file
+    file: ./get-whip-media.ps1
+    data: |
+      # Adds WHIP's picture packs (whip_media_clothing_male, whip_media_clothing_female, whip_media_props and
+      # whip_media_previews) to this server, which otherwise loads their pictures from WHIP's CDN: installed, each serves its
+      # own. It downloads 14 zips from GitHub, checks each one, and unzips it into its resource's folder. If it stops, run it
+      # again: it keeps the zips it already has.
+      # Run it in this folder (the one with server.cfg), with the server stopped:
+      #   powershell -ExecutionPolicy Bypass -File get-whip-media.ps1
+      $ErrorActionPreference = 'Stop'
+      [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+      Add-Type -AssemblyName System.IO.Compression.FileSystem
+      $root = $PSScriptRoot
+      $tmp = [IO.Path]::Combine($root, 'tmp-whip-media')
+      [IO.Directory]::CreateDirectory($tmp) | Out-Null
+      # url, folder, size and sha256 (0 and '' when not known)
+      $parts = @(
+          ,@('https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-1.zip', 'resources/[assets]/[media]/whip_media_clothing_male', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-2.zip', 'resources/[assets]/[media]/whip_media_clothing_male', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-3.zip', 'resources/[assets]/[media]/whip_media_clothing_male', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-4.zip', 'resources/[assets]/[media]/whip_media_clothing_male', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-1.zip', 'resources/[assets]/[media]/whip_media_clothing_female', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-2.zip', 'resources/[assets]/[media]/whip_media_clothing_female', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-3.zip', 'resources/[assets]/[media]/whip_media_clothing_female', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-4.zip', 'resources/[assets]/[media]/whip_media_clothing_female', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-1.zip', 'resources/[assets]/[media]/whip_media_props', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-2.zip', 'resources/[assets]/[media]/whip_media_props', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-3.zip', 'resources/[assets]/[media]/whip_media_props', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-1.zip', 'resources/[assets]/[media]/whip_media_previews', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-2.zip', 'resources/[assets]/[media]/whip_media_previews', 0, '')
+          ,@('https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-3.zip', 'resources/[assets]/[media]/whip_media_previews', 0, '')
+      )
+
+      function Test-Part($file, $size, $sha) {
+          if (-not [IO.File]::Exists($file)) { return $false }
+          if ($size -gt 0 -and (New-Object IO.FileInfo $file).Length -ne $size) { return $false }
+          if ($sha -and (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash -ne $sha) { return $false }
+          return $true
+      }
+
+      $web = New-Object Net.WebClient
+      foreach ($p in $parts) {
+          $url, $dest, $size, $sha = $p
+          $file = [IO.Path]::Combine($tmp, $url.Split('/')[-1])
+          for ($try = 1; -not (Test-Part $file $size $sha); $try++) {
+              if ($try -gt 3) { throw "Could not download $url" }
+              if ($try -gt 1) { Write-Host '  It failed: trying again'; Start-Sleep -Seconds 5 }
+              Write-Host "Downloading $url"
+              try {
+                  # WebClient sends no User-Agent, and clears one set on it after each download. Sites behind Cloudflare
+                  # refuse a request without one.
+                  $web.Headers['User-Agent'] = 'WHIP get-whip-media'
+                  $web.DownloadFile($url, "$file.part")
+                  [IO.File]::Delete($file)
+                  [IO.File]::Move("$file.part", $file)
+              } catch { Write-Host "  $($_.Exception.Message)" }
+          }
+          $target = [IO.Path]::GetFullPath([IO.Path]::Combine($root, $dest))
+          Write-Host "Unzipping into $dest"
+          $zip = [IO.Compression.ZipFile]::OpenRead($file)
+          try {
+              foreach ($entry in $zip.Entries) {
+                  $out = [IO.Path]::GetFullPath([IO.Path]::Combine($target, $entry.FullName))
+                  if (-not $out.StartsWith($target + [IO.Path]::DirectorySeparatorChar)) { throw "Unsafe path in the zip: $($entry.FullName)" }
+                  if ($entry.FullName.EndsWith('/')) { continue }
+                  [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($out)) | Out-Null
+                  [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $out, $true)
+              }
+          } finally { $zip.Dispose() }
+      }
+      [IO.Directory]::Delete($tmp, $true)
+      Write-Host 'Done. Start the server: the ensure [assets] line in server.cfg starts the new packs.'
+
+  - action: write_file
+    file: ./get-whip-media.sh
+    data: |
+      #!/bin/sh
+      # Adds WHIP's picture packs (whip_media_clothing_male, whip_media_clothing_female, whip_media_props and
+      # whip_media_previews) to this server, which otherwise loads their pictures from WHIP's CDN: installed, each serves its
+      # own. It downloads 14 zips from GitHub, checks each one, and unzips it into its resource's folder. If it stops, run it
+      # again: it keeps the zips it already has. It needs curl and unzip.
+      # Run it in this folder (the one with server.cfg), with the server stopped:  sh get-whip-media.sh
+      set -eu
+      cd "$(dirname "$0")"
+      for tool in curl unzip; do
+        command -v "$tool" >/dev/null 2>&1 || { echo "get-whip-media.sh needs $tool" >&2; exit 1; }
+      done
+      tmp='tmp-whip-media'
+      mkdir -p "$tmp"
+
+      sha256() {
+        if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | cut -d' ' -f1; else shasum -a 256 "$1" | cut -d' ' -f1; fi
+      }
+      # file size sha256: is the file there and whole? (size 0 and an empty sha256 when not known)
+      ok() {
+        [ -f "$1" ] || return 1
+        if [ "$2" -gt 0 ] && [ "$(wc -c < "$1" | tr -d ' ')" -ne "$2" ]; then return 1; fi
+        if [ -n "$3" ] && [ "$(sha256 "$1")" != "$3" ]; then return 1; fi
+        return 0
+      }
+      # url folder size sha256
+      get() {
+        file="$tmp/${1##*/}"
+        try=1
+        until ok "$file" "$3" "$4"; do
+          if [ "$try" -gt 3 ]; then echo "Could not download $1" >&2; exit 1; fi
+          if [ "$try" -gt 1 ]; then echo "  It failed: trying again"; sleep 5; fi
+          echo "Downloading $1"
+          curl -fsSL --retry 3 -o "$file.part" "$1" && mv -f "$file.part" "$file" || true
+          try=$((try + 1))
+        done
+        echo "Unzipping into $2"
+        mkdir -p "$2"
+        unzip -o -q "$file" -d "$2"
+      }
+
+      get 'https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-1.zip' 'resources/[assets]/[media]/whip_media_clothing_male' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-2.zip' 'resources/[assets]/[media]/whip_media_clothing_male' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-3.zip' 'resources/[assets]/[media]/whip_media_clothing_male' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_clothing_male/releases/download/v1.0.0/whip_media_clothing_male-4.zip' 'resources/[assets]/[media]/whip_media_clothing_male' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-1.zip' 'resources/[assets]/[media]/whip_media_clothing_female' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-2.zip' 'resources/[assets]/[media]/whip_media_clothing_female' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-3.zip' 'resources/[assets]/[media]/whip_media_clothing_female' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_clothing_female/releases/download/v1.0.0/whip_media_clothing_female-4.zip' 'resources/[assets]/[media]/whip_media_clothing_female' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-1.zip' 'resources/[assets]/[media]/whip_media_props' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-2.zip' 'resources/[assets]/[media]/whip_media_props' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_props/releases/download/v1.0.0/whip_media_props-3.zip' 'resources/[assets]/[media]/whip_media_props' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-1.zip' 'resources/[assets]/[media]/whip_media_previews' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-2.zip' 'resources/[assets]/[media]/whip_media_previews' 0 ''
+      get 'https://github.com/WHIPFX/whip_media_previews/releases/download/v1.0.0/whip_media_previews-3.zip' 'resources/[assets]/[media]/whip_media_previews' 0 ''
+      rm -rf "$tmp"
+      echo "Done. Start the server: the ensure [assets] line in server.cfg starts the new packs."
 
   # ---- The database: empty. WHIP makes every table itself on its first start; there is no SQL file. ------------------
   - action: connect_database

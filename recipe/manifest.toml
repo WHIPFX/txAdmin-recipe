@@ -1,9 +1,8 @@
 # The one list of what a WHIP install is: every resource, at the tag it installs, and where it goes.
 #
 # tools/recipes.py makes every recipe from this file and the two server.*.cfg next to it:
-#   whip-legacy.yaml, whip-enhanced.yaml            the full install, from GitHub
-#   whip-legacy-lite.yaml, whip-enhanced-lite.yaml  everything but the heavy packs, from GitHub
-# and, when CI publishes a release to the CDN, the same four with every download from the CDN.
+#   whip-legacy.yaml, whip-enhanced.yaml   one per game, from GitHub: everything but the picture packs, which
+#                                          whip_core loads from WHIP's CDN (get-whip-media adds them to a server)
 # When a WHIPFX resource publishes a release, the Recipe update (tools/recipe_update.py) moves its tag (and parts) here,
 # runs tools/recipes.py and pushes both to main. bob74_ipl and oxmysql are by hand: change a tag here, run
 # `python tools/recipes.py`, and commit both. CI fails if they disagree.
@@ -17,9 +16,9 @@
 #              "source"         download_github of the tag (GitHub zips it on request)
 #              "release-zips"   the zips tools/release_zips.py attached to the release; parts = how many
 #              "release-asset"  one file attached to the release (asset = its name), unzipped into dest
-#   heavy    true for the packs the lite recipes leave out (the media packs and the Mirror Park homes)
-#   pictures true for the picture packs whose files WHIP's CDN serves (tools/media.py, .github/workflows/media.yml):
-#            whip_core loads a picture from media.whipfx.net when its pack is not installed
+#   pictures true for the picture packs: not installed, as WHIP's CDN serves their files (tools/media.py,
+#            .github/workflows/media.yml) and whip_core loads a picture from media.whipfx.net when its pack isn't
+#            there. The recipes write get-whip-media.ps1 and .sh, which install them for a server that wants them
 #   note     an optional comment line above its tasks; {tag} is replaced with its tag
 #
 # The CDN recipes ignore github/parts/asset: CI zips every resource at its tag itself (tools/cdn.py).
@@ -36,7 +35,6 @@ min_mbit = 3
 [platform.legacy]
 title = "Legacy (FXServer)"
 name = "WHIP"
-lite_name = "WHIP Lite"
 min_fx_version = 38435
 min_fx_note = "FXServer artifact 38435 or newer (sv_enforceSteamAuth alone needs 38004)"
 server_cfg = "server.legacy.cfg"
@@ -44,7 +42,6 @@ server_cfg = "server.legacy.cfg"
 [platform.enhanced]
 title = "GTA V Enhanced (cfx-server)"
 name = "WHIP (Enhanced)"
-lite_name = "WHIP Lite (Enhanced)"
 server_cfg = "server.enhanced.cfg"
 
 # ---- WHIP ------------------------------------------------------------------------------------------------------------
@@ -142,7 +139,6 @@ tag = "v1.0.0"
 dest = "./resources/[assets]/[media]/whip_media_clothing_male"
 github = "release-zips"
 parts = 4
-heavy = true
 pictures = true
 
 [[section.resource]]
@@ -152,7 +148,6 @@ tag = "v1.0.0"
 dest = "./resources/[assets]/[media]/whip_media_clothing_female"
 github = "release-zips"
 parts = 4
-heavy = true
 pictures = true
 
 [[section.resource]]
@@ -162,7 +157,6 @@ tag = "v1.0.0"
 dest = "./resources/[assets]/[media]/whip_media_props"
 github = "release-zips"
 parts = 3
-heavy = true
 pictures = true
 
 [[section.resource]]
@@ -172,7 +166,6 @@ tag = "v1.0.0"
 dest = "./resources/[assets]/[media]/whip_media_previews"
 github = "release-zips"
 parts = 3
-heavy = true
 pictures = true
 
 [[section.resource]]
@@ -182,7 +175,6 @@ tag = "v1.0.0"
 dest = "./resources/[assets]/[media]/whip_media_map"
 github = "release-zips"
 parts = 1
-heavy = true
 
 # ---- The map packs ---------------------------------------------------------------------------------------------------
 [[section]]
@@ -195,7 +187,6 @@ tag = "v1.0.1"
 dest = "./resources/[assets]/whip_homes_mirrorpark"
 github = "release-zips"
 parts = 3
-heavy = true
 note = "whip_homes_mirrorpark {tag}, as its release's zips (made by tools/release_zips.py)"
 
 [[section.resource]]
