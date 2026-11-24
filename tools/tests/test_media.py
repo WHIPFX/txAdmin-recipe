@@ -60,7 +60,7 @@ class Publish(unittest.TestCase):
         for r in PACKS:
             pack(self.tmp / "v1" / r.name, {f"img/{r.name}/a.webp": b"a-" + r.name.encode(), "fxmanifest.lua": b"x",
                                             "img/notes.yml": b"y"})
-        pack(self.tmp / "v1" / self.props, {"video/emotes/wave.webm": b"wave"})
+        pack(self.tmp / "v1" / self.props, {"video/emotes/Dances/Wave.webm": b"wave"})
 
     def run_publish(self, m: recipes.Manifest, work: str, force: bool = False) -> str:
         out = StringIO()
@@ -77,8 +77,8 @@ class Publish(unittest.TestCase):
         idx = self.index()
         self.assertEqual(sorted(idx["packs"]), sorted(r.name for r in PACKS))
         self.assertEqual(idx["packs"][self.props]["files"], {"img/whip_media_props": ["a.webp"],
-                                                             "video/emotes": ["wave.webm"]})
-        data, ctype, cache = self.store.objects["media/video/emotes/wave.webm"]
+                                                             "video/emotes/dances": ["wave.webm"]})   # lower case
+        data, ctype, cache = self.store.objects["media/video/emotes/dances/wave.webm"]
         self.assertEqual((data, ctype, cache), (b"wave", "video/webm", media.FOREVER))
         self.assertEqual(self.store.objects[media.INDEX][2], media.SHORT)
         self.assertNotIn("media/fxmanifest.lua", self.store.objects)   # only img/ and video/, only media files
@@ -97,7 +97,7 @@ class Publish(unittest.TestCase):
                                             f"img/{self.props}/b.webp": b"new"})                       # new
         self.run_publish(manifest({self.props: "v9.0.0"}), "v2")
         self.assertEqual(sorted(self.store.puts), sorted([f"media/img/{self.props}/b.webp", media.INDEX]))
-        self.assertIn("media/video/emotes/wave.webm", self.store.objects)   # gone from the release, kept here
+        self.assertIn("media/video/emotes/dances/wave.webm", self.store.objects)   # gone from the release, kept here
         idx = self.index()
         self.assertEqual(idx["packs"][self.props]["version"], "v9.0.0")
         self.assertEqual(idx["packs"][self.props]["files"], {f"img/{self.props}": ["a.webp", "b.webp"]})
