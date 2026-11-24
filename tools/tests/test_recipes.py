@@ -31,34 +31,30 @@ class Committed(unittest.TestCase):
             self.assertEqual(recipes.main(["--check", "--out", tmp]), 1)
 
 
-class Variants(unittest.TestCase):
+class Recipes(unittest.TestCase):
     m = recipes.load_manifest()
 
-    def test_full_has_every_resource_and_lite_has_all_but_the_heavy_ones(self) -> None:
+    def test_every_resource_but_the_picture_packs_and_the_scripts_to_add_them(self) -> None:
+        self.assertTrue(any(r.pictures for r in self.m.resources))
         for platform in self.m.platforms:
-            full = recipes.render(self.m, platform, "full")
-            lite = recipes.render(self.m, platform, "lite")
+            text = recipes.render(self.m, platform)
             for r in self.m.resources:
-                self.assertIn(f"dest: {r.dest}\n", full, r.name)
-                self.assertEqual(f"dest: {r.dest}\n" in lite, not r.heavy, r.name)
-            self.assertIn("file: ./get-whip-media.ps1", lite)
-            self.assertIn("file: ./get-whip-media.sh", lite)
-            self.assertNotIn("get-whip-media", full)
+                self.assertEqual(f"dest: {r.dest}\n" in text, not r.pictures, r.name)
+            self.assertIn("file: ./get-whip-media.ps1", text)
+            self.assertIn("file: ./get-whip-media.sh", text)
 
-    def test_the_media_scripts_get_every_heavy_part(self) -> None:
-        lite = recipes.render(self.m, "legacy", "lite")
+    def test_the_media_scripts_get_every_picture_pack_part(self) -> None:
+        text = recipes.render(self.m, "legacy")
         for r in self.m.resources:
-            if r.heavy:
+            if r.pictures:
                 for p in recipes.github_parts(r):
-                    self.assertIn(f"get '{p.url}' '{r.dest.removeprefix('./')}' 0 ''", lite)
-                    self.assertIn(f",@('{p.url}', '{r.dest.removeprefix('./')}', 0, '')", lite)
+                    self.assertIn(f"get '{p.url}' '{r.dest.removeprefix('./')}' 0 ''", text)
+                    self.assertIn(f",@('{p.url}', '{r.dest.removeprefix('./')}', 0, '')", text)
 
     def test_the_platforms_differ_only_in_their_header_and_server_cfg(self) -> None:
         def tasks(text: str) -> str:
             return text.split("\ntasks:\n", 1)[1].split("  - action: write_file\n    file: ./server.cfg", 1)[0]
-        for variant in ("full", "lite"):
-            self.assertEqual(tasks(recipes.render(self.m, "legacy", variant)),
-                             tasks(recipes.render(self.m, "enhanced", variant)))
+        self.assertEqual(tasks(recipes.render(self.m, "legacy")), tasks(recipes.render(self.m, "enhanced")))
 
     def test_recipes_are_lf_only_and_names_fit_txadmin(self) -> None:
         for name, text in recipes.render_all(self.m).items():
@@ -85,14 +81,15 @@ class Cdn(unittest.TestCase):
             self.assertIn("release r1", text)
 
     def test_cdn_recipes_download_every_part_and_unzip_it_with_the_long_timeout(self) -> None:
-        text = recipes.render(self.m, "enhanced", "full", "cdn", indexes=fake_indexes(self.m), base=self.base)
-        for r in self.m.resources:
+        text = recipes.render(self.m, "enhanced", "cdn", indexes=fake_indexes(self.m), base=self.base)
+        installed = [r for r in self.m.resources if not r.pictures]
+        for r in installed:
             for i in (1, 2):
                 url = f"{self.base}/releases/{r.name}/{r.tag}/{r.name}-{i}.zip"
                 self.assertIn(f"    url: {url}\n    path: ./tmp/{r.name}-{i}.zip\n\n  - action: unzip\n"
                               f"    src: ./tmp/{r.name}-{i}.zip\n    dest: {r.dest}\n    timeoutSeconds: 1800\n", text)
         # 3 MB per resource in fake_indexes
-        self.assertIn(f"Downloads {3 * len(self.m.resources)} MB from WHIP's CDN.", " ".join(text.split()))
+        self.assertIn(f"Downloads {3 * len(installed)} MB from WHIP's CDN.", " ".join(text.split()))
 
     def test_every_description_fits_txadmins_256_characters(self) -> None:
         big = fake_indexes(self.m)
@@ -104,18 +101,18 @@ class Cdn(unittest.TestCase):
                 desc = " ".join(text.split("description: >-\n", 1)[1].split("\n\n", 1)[0].split())
                 self.assertLessEqual(len(desc), 256, f"{source} {name}: {desc}")
 
-    def test_the_cdn_lite_scripts_check_sizes_and_sha256s(self) -> None:
-        lite = recipes.render(self.m, "legacy", "lite", "cdn", indexes=fake_indexes(self.m), base=self.base)
+    def test_the_cdn_media_scripts_check_sizes_and_sha256s(self) -> None:
+        text = recipes.render(self.m, "legacy", "cdn", indexes=fake_indexes(self.m), base=self.base)
         sha = f"{2:064x}"
-        self.assertIn(f"/whip_media_props-2.zip' 'resources/[assets]/[media]/whip_media_props' 2000000 '{sha}'", lite)
+        self.assertIn(f"/whip_media_props-2.zip' 'resources/[assets]/[media]/whip_media_props' 2000000 '{sha}'", text)
 
     def test_a_cdn_recipe_needs_a_base_and_matching_indexes(self) -> None:
         with self.assertRaises(ValueError):
-            recipes.render(self.m, "legacy", "full", "cdn", indexes=fake_indexes(self.m))
+            recipes.render(self.m, "legacy", "cdn", indexes=fake_indexes(self.m))
         wrong = fake_indexes(self.m)
         wrong["whip_core"]["tag"] = "v0.0.1"
         with self.assertRaises(ValueError):
-            recipes.render(self.m, "legacy", "full", "cdn", indexes=wrong, base=self.base)
+            recipes.render(self.m, "legacy", "cdn", indexes=wrong, base=self.base)
 
 
 class Validation(unittest.TestCase):

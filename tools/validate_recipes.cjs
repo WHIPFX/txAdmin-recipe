@@ -4,8 +4,8 @@
 //
 //     NODE_PATH=<folder with js-yaml 4> node tools/validate_recipes.cjs whip-*.yaml
 //
-// It also checks the variants agree: each lite recipe is its full recipe without the heavy packs, plus the
-// get-whip-media scripts, and the Legacy and Enhanced recipes download the same files.
+// It also checks each recipe writes the get-whip-media scripts (they add the picture packs) and its server.cfg, and that
+// the Legacy and Enhanced recipes download the same files.
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
@@ -78,31 +78,11 @@ for (const file of process.argv.slice(2)) {
     }
 }
 
-for (const [name, lite] of Object.entries(parsed)) {
-    if (!name.endsWith('-lite.yaml')) continue;
-    const full = parsed[name.replace('-lite.yaml', '.yaml')];
-    if (!full) continue;
-    const fullTasks = installs(full);
-    const liteTasks = installs(lite);
-    // Every lite task is in the full recipe, in the same order
-    let at = 0;
-    for (const task of liteTasks) {
-        while (at < fullTasks.length && !same(fullTasks[at], task)) at++;
-        if (at === fullTasks.length) {
-            failed = true;
-            console.log(`FAIL  ${name}: ${JSON.stringify(task)} is not in the full recipe`);
-            break;
-        }
-    }
-    const scripts = lite.tasks.filter((t) => t.action === 'write_file').map((t) => t.file).sort();
-    if (!same(scripts, ['./get-whip-media.ps1', './get-whip-media.sh', './server.cfg'])) {
+for (const [name, recipe] of Object.entries(parsed)) {
+    const written = recipe.tasks.filter((t) => t.action === 'write_file').map((t) => t.file).sort();
+    if (!same(written, ['./get-whip-media.ps1', './get-whip-media.sh', './server.cfg'])) {
         failed = true;
-        console.log(`FAIL  ${name}: writes ${scripts.join(', ')}`);
-    }
-    const cfg = (r) => r.tasks.find((t) => t.file === './server.cfg').data;
-    if (cfg(lite) !== cfg(full)) {
-        failed = true;
-        console.log(`FAIL  ${name}: its server.cfg differs from the full recipe's`);
+        console.log(`FAIL  ${name}: writes ${written.join(', ')}`);
     }
 }
 for (const [name, legacy] of Object.entries(parsed)) {

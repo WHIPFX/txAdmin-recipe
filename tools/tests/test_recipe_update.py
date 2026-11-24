@@ -52,7 +52,7 @@ class Move(unittest.TestCase):
     def test_the_recipes_made_after_a_move_install_the_new_release(self) -> None:
         parts = NOW["whip_gunny"].parts + 1
         m = load(recipe_update.move(TEXT, "whip_gunny", NEW, parts))
-        text = recipes.render(m, "enhanced", "full")
+        text = recipes.render(m, "enhanced")
         base = "https://github.com/WHIPFX/whip_gunny/releases/download"
         for i in range(1, parts + 1):
             self.assertIn(f"    url: {base}/{NEW}/whip_gunny-{i}.zip\n", text)
