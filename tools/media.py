@@ -92,12 +92,14 @@ class R2:
 
 
 def files_of(root: Path) -> dict[str, Path]:
-    """The pack's pictures and videos: 'img/props/x.webp' -> its file."""
+    """The pack's pictures and videos: 'img/props/x.webp' -> its file. In lower case: a pack on Windows answers any case
+    (the character editor asks for 'male_11_Male_Heist_002_00.webp', the file is 'male_11_male_heist_002_00.webp'),
+    and the bucket answers only the case it was given, so every key is lower case and whip_core asks in lower case."""
     out: dict[str, Path] = {}
     for d in DIRS:
         for f in sorted((root / d).rglob("*")):
             if f.is_file() and f.suffix.lower() in TYPES:
-                out[f.relative_to(root).as_posix()] = f
+                out[f.relative_to(root).as_posix().lower()] = f
     return out
 
 
