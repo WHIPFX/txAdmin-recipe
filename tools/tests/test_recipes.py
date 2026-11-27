@@ -51,10 +51,24 @@ class Recipes(unittest.TestCase):
                     self.assertIn(f"get '{p.url}' '{r.dest.removeprefix('./')}' 0 ''", text)
                     self.assertIn(f",@('{p.url}', '{r.dest.removeprefix('./')}', 0, '')", text)
 
-    def test_the_platforms_differ_only_in_their_header_and_server_cfg(self) -> None:
-        def tasks(text: str) -> str:
-            return text.split("\ntasks:\n", 1)[1].split("  - action: write_file\n    file: ./server.cfg", 1)[0]
-        self.assertEqual(tasks(recipes.render(self.m, "legacy")), tasks(recipes.render(self.m, "enhanced")))
+    def test_the_platforms_differ_only_in_their_header_server_cfg_and_game_zips(self) -> None:
+        def tasks(text: str, platform: str) -> str:
+            body = text.split("\ntasks:\n", 1)[1].split("  - action: write_file\n    file: ./server.cfg", 1)[0]
+            return body.replace(f"-{platform}-", "-GAME-")
+        self.assertEqual(tasks(recipes.render(self.m, "legacy"), "legacy"),
+                         tasks(recipes.render(self.m, "enhanced"), "enhanced"))
+
+    def test_a_resource_with_models_for_both_games_downloads_only_its_games_zips(self) -> None:
+        m = per_game(self.m, "whip_gunny", {"legacy": 2, "enhanced": 3})
+        base = f"https://github.com/WHIPFX/whip_gunny/releases/download/{tag_of(m, 'whip_gunny')}"
+        for platform, other, count in (("legacy", "enhanced", 2), ("enhanced", "legacy", 3)):
+            text = recipes.render(m, platform)
+            for i in range(1, count + 1):
+                self.assertIn(f"    url: {base}/whip_gunny-{platform}-{i}.zip\n", text)
+            self.assertNotIn(f"whip_gunny-{platform}-{count + 1}.zip", text)
+            self.assertNotIn(f"whip_gunny-{other}-", text)
+            self.assertNotIn(f"{base}/whip_gunny-1.zip", text)
+            self.assertIn(f"downloads the {platform} set only", " ".join(text.split()))
 
     def test_recipes_are_lf_only_and_names_fit_txadmin(self) -> None:
         for name, text in recipes.render_all(self.m).items():
@@ -115,16 +129,33 @@ class Cdn(unittest.TestCase):
             recipes.render(self.m, "legacy", "cdn", indexes=wrong, base=self.base)
 
 
+def per_game(m: recipes.Manifest, name: str, parts: dict[str, int]) -> recipes.Manifest:
+    """The manifest with one resource's zips made per game."""
+    sections = tuple(replace(s, resources=tuple(replace(r, github="release-zips", parts=parts) if r.name == name else r
+                                                for r in s.resources)) for s in m.sections)
+    out = replace(m, sections=sections)
+    recipes.validate(out)
+    return out
+
+
+def tag_of(m: recipes.Manifest, name: str) -> str:
+    return next(r.tag for r in m.resources if r.name == name)
+
+
 class Validation(unittest.TestCase):
     m = recipes.load_manifest()
 
     def test_bad_manifests_are_refused(self) -> None:
         core = self.m.sections[0].resources[0]
-        for bad in (replace(core, github="release-zips", parts=0), replace(core, github="release-asset"),
-                    replace(core, dest="./server.cfg"), replace(core, dest="./resources/../x")):
+        zips = replace(core, github="release-zips")
+        for bad in (replace(zips, parts=0), replace(core, github="release-asset"),
+                    replace(core, dest="./server.cfg"), replace(core, dest="./resources/../x"),
+                    replace(zips, parts={"legacy": 2}), replace(zips, parts={"legacy": 2, "enhanced": 0}),
+                    replace(zips, parts={"legacy": 1, "enhanced": 1}, pictures=True)):
             section = replace(self.m.sections[0], resources=(bad,))
             with self.assertRaises(ValueError, msg=bad):
                 recipes.validate(replace(self.m, sections=(section,)))
+        recipes.validate(per_game(self.m, "whip_core", {"legacy": 1, "enhanced": 2}))  # and a good one passes
         twice = replace(self.m.sections[0], resources=(core, core))
         with self.assertRaises(ValueError):
             recipes.validate(replace(self.m, sections=(twice,)))

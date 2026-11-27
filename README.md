@@ -118,7 +118,8 @@ From WHIP's CDN, or in `resources/[assets]/[media]` if you [install them](#pictu
 In `resources/[ox]`, [oxmysql](https://github.com/WHIPFX/oxmysql), WHIP's database library: WHIPFX's fork, where a
 query fails straight away when the database is down instead of waiting forever.
 
-Every resource runs on both games. The two recipes differ only in `server.cfg`.
+Every resource runs on both games. The two recipes differ in `server.cfg`, and in the models they download: each
+gets only its own game's.
 
 ## License
 

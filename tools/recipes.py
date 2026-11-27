@@ -35,7 +35,7 @@ class Resource:
     tag: str
     dest: str
     github: Literal["source", "release-zips", "release-asset"]
-    parts: int = 0
+    parts: int | dict[str, int] = 0  # a dict (one count per game) for a resource with models for both games
     asset: str = ""
     pictures: bool = False
     note: str = ""
@@ -103,20 +103,34 @@ def validate(m: Manifest) -> None:
         if r.name in seen:
             raise ValueError(f"{r.name} is in the manifest twice")
         seen.add(r.name)
-        if r.github == "release-zips" and r.parts < 1:
-            raise ValueError(f"{r.name}: release-zips needs parts")
+        if r.github == "release-zips":
+            if isinstance(r.parts, dict):
+                if set(r.parts) != set(m.platforms) or any(not isinstance(n, int) or n < 1 for n in r.parts.values()):
+                    raise ValueError(f"{r.name}: per-game parts need a count of 1 or more for each of "
+                                     f"{', '.join(m.platforms)}")
+                if r.pictures:
+                    raise ValueError(f"{r.name}: a picture pack has one set of zips for every server")
+            elif not isinstance(r.parts, int) or r.parts < 1:
+                raise ValueError(f"{r.name}: release-zips needs parts")
         if r.github == "release-asset" and not r.asset:
             raise ValueError(f"{r.name}: release-asset needs asset")
         if not r.dest.startswith("./resources/") or ".." in r.dest:
             raise ValueError(f"{r.name}: dest must be under ./resources/")
 
 
-def github_parts(r: Resource) -> list[Part]:
-    """The files the GitHub recipes download for a resource that isn't a download_github."""
+def github_parts(r: Resource, platform: str = "") -> list[Part]:
+    """The files the GitHub recipes download for a resource that isn't a download_github. A resource with models for
+    both games has a set of zips for each (tools/release_zips.py): the platform's."""
     base = f"https://github.com/{r.repo}/releases/download/{r.tag}"
     if r.github == "release-asset":
         return [Part(f"{base}/{r.asset}", r.asset)]
-    return [Part(f"{base}/{r.name}-{i}.zip", f"{r.name}-{i}.zip") for i in range(1, r.parts + 1)]
+    if isinstance(r.parts, dict):
+        if platform not in r.parts:
+            raise ValueError(f"{r.name} has zips for each game: say which")
+        names = [f"{r.name}-{platform}-{i}.zip" for i in range(1, r.parts[platform] + 1)]
+    else:
+        names = [f"{r.name}-{i}.zip" for i in range(1, r.parts + 1)]
+    return [Part(f"{base}/{name}", name) for name in names]
 
 
 def cdn_parts(r: Resource, index: dict, base: str) -> list[Part]:
@@ -310,7 +324,7 @@ def render(m: Manifest, platform: str, source: Source = "github",
                 parts: list[Part] | None = cdn_parts(r, indexes[r.name], base)  # type: ignore[index]
                 total += sum(x.size for x in parts)
             else:
-                parts = None if r.github == "source" else github_parts(r)
+                parts = None if r.github == "source" else github_parts(r, platform)
                 github_calls += parts is None
             body += resource_tasks(r, parts, source)
         if body:
@@ -346,6 +360,8 @@ def render(m: Manifest, platform: str, source: Source = "github",
                         f"(tools/release_zips.py), then puts their tasks here. Their unzips get {UNZIP_TIMEOUT} seconds: some servers (a slow disk, "
                         "or antivirus checking each new file) take more than the 180 txAdmin allows by default to write "
                         "a few thousand small files.")
+        head += comment("A resource with models for both games (stream/ for Legacy, stream_enhanced/ for Enhanced) has "
+                        f"a set of zips for each game, and this recipe downloads the {platform} set only.")
         head += comment(f"Each download_github is one call to GitHub's API (60 an hour without a token): {github_calls} "
                         "here.")
     else:
@@ -359,7 +375,7 @@ def render(m: Manifest, platform: str, source: Source = "github",
                     "get-whip-media.ps1 or get-whip-media.sh, which this recipe writes into the server folder.")
 
     # txAdmin recommends a description under 256 characters: the tests check each recipe
-    size = f"Downloads {human_mb(total)} from WHIP's CDN." if source == "cdn" else "Downloads about 300 MB from GitHub."
+    size = f"Downloads {human_mb(total)} from WHIP's CDN." if source == "cdn" else "Downloads about 180 MB from GitHub."
     desc = ("WHIP, a complete server base: characters, inventory, money and banks, jobs, cars, homes, and an admin panel "
             f"in game (/whip). For a {p.title} server. {size}").strip()
     meta = ["$engine: 3", "$onesync: on"]

@@ -10,7 +10,7 @@ then writes every recipe from it again:
   - A resource the recipes get with download_github (github = "source") gets the new release's tag.
   - A resource the recipes get as its release's zips (github = "release-zips") gets the new release's tag, and its
     number of zips as parts, once its Release zips run has attached them (tools/release_zips.py). This waits for that
-    run.
+    run. A resource with models for both games has a set for each game, so its parts are { legacy = n, enhanced = n }.
 
 Each resource that moves is one commit of the manifest and the recipes, "chore: the recipes install <repo> <version>",
 pushed to main when it is ready. bob74_ipl (not WHIPFX's) and oxmysql (WHIPFX's fork of upstream, a release build)
@@ -33,7 +33,7 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import recipes  # noqa: E402  (makes every recipe from the manifest)
-from release_zips import ORG  # noqa: E402
+from release_zips import ORG, zip_set  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST = "recipe/manifest.toml"
@@ -65,9 +65,30 @@ def api(path):
         raise
 
 
-def is_part(repo, asset):
-    """Is this asset one of the resource's release zips (<repo>-<n>.zip)?"""
-    return re.fullmatch(rf"{re.escape(repo)}-\d+\.zip", asset) is not None
+def parts_value(parts):
+    """parts as the manifest writes it: 3, or { legacy = 2, enhanced = 2 }."""
+    if isinstance(parts, dict):
+        return "{ " + ", ".join(f"{game} = {n}" for game, n in parts.items()) + " }"
+    return str(parts)
+
+
+def release_parts(repo, assets):
+    """The parts a release's zips make: {game: count} when it has a set for each game (preferred: a release made
+    before them also keeps its one set), else the one set's count, else None. Refused when a set has gaps."""
+    sets = {}
+    for name in assets:
+        game = zip_set(repo, name)
+        if game is not None:
+            sets.setdefault(game, []).append(int(name.rsplit("-", 1)[1].split(".")[0]))
+    for game, numbers in sets.items():
+        if sorted(numbers) != list(range(1, len(numbers) + 1)):
+            label = f"{game} zips" if game else "zips"
+            raise Refused(f"{repo}: its {label} are not numbered 1 to {len(numbers)}: {sorted(numbers)}")
+    if "legacy" in sets and "enhanced" in sets:
+        return {"legacy": len(sets["legacy"]), "enhanced": len(sets["enhanced"])}
+    if "" in sets:
+        return len(sets[""])
+    return None
 
 
 def resources(manifest):
@@ -95,7 +116,7 @@ def move(text, repo, tag, parts=None):
     last = at[0]
     while last + 1 < len(lines) and not lines[last + 1].startswith("["):
         last += 1
-    wanted = {"tag": f'tag = "{tag}"'} | ({"parts": f"parts = {parts}"} if parts is not None else {})
+    wanted = {"tag": f'tag = "{tag}"'} | ({"parts": f"parts = {parts_value(parts)}"} if parts is not None else {})
     for i in range(first, last + 1):
         key = lines[i].split(" = ", 1)[0]
         if key in wanted:
@@ -106,7 +127,7 @@ def move(text, repo, tag, parts=None):
 
 
 def zips_ready(repo, tag):
-    """The new release's zip names once its Release zips run has attached them, else None (still to come)."""
+    """The new release's parts (release_parts) once its Release zips run has attached them, else None (still to come)."""
     runs = api(f"repos/{ORG}/{repo}/actions/workflows/release-zips.yml/runs?per_page=10")
     if runs is None:
         raise Refused(f"{repo}: it has no Release zips workflow (.github/workflows/release-zips.yml)")
@@ -114,12 +135,8 @@ def zips_ready(repo, tag):
     if any(r["status"] != "completed" for r in runs):
         return None
     release = api(f"repos/{ORG}/{repo}/releases/tags/{tag}")
-    parts = sorted((a["name"] for a in (release or {}).get("assets", [])
-                    if a["state"] == "uploaded" and is_part(repo, a["name"])),
-                   key=lambda n: int(n.rsplit("-", 1)[1].split(".")[0]))
-    if parts:
-        if parts != [f"{repo}-{n}.zip" for n in range(1, len(parts) + 1)]:
-            raise Refused(f"{repo} {tag}: its zips are not numbered 1 to {len(parts)}: {', '.join(parts)}")
+    parts = release_parts(repo, [a["name"] for a in (release or {}).get("assets", []) if a["state"] == "uploaded"])
+    if parts is not None:
         return parts
     mine = [r for r in runs if r["head_branch"] == tag]
     if mine and mine[0]["conclusion"] != "success":
@@ -173,16 +190,16 @@ def main():
         waiting = []
         for repo, kind, old, new in todo:
             try:
-                names = zips_ready(repo, new) if kind == "zips" else None
-                if kind == "zips" and names is None:
+                parts = zips_ready(repo, new) if kind == "zips" else None
+                if kind == "zips" and parts is None:
                     waiting.append((repo, kind, old, new))
                     continue
                 if args.dry_run:
-                    print(f"{repo}: would move from {old} to {new}" + (f" ({len(names)} zips)" if names else ""))
+                    print(f"{repo}: would move from {old} to {new}" + (f" (parts {parts_value(parts)})" if parts else ""))
                     continue
                 path = os.path.join(ROOT, MANIFEST)
                 with open(path, encoding="utf-8") as f:
-                    text = move(f.read(), repo, new, len(names) if names else None)
+                    text = move(f.read(), repo, new, parts)
                 with open(path, "w", encoding="utf-8", newline="") as f:
                     f.write(text)
                 recipes.main([])  # every recipe, written again from the manifest

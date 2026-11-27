@@ -41,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           python -I recipe/tools/release_zips.py "${GITHUB_REPOSITORY#*/}" "$TAG" --dest "$DEST" > tasks.yaml
-          parts=$(grep -c 'action: download_file' tasks.yaml)
+          parts=$(sed -n 's/^# parts = //p' tasks.yaml)
           {
             echo "### For the recipes"
             echo
