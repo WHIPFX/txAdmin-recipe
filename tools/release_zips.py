@@ -6,6 +6,11 @@ attached to the release instead: they come from GitHub's CDN, and each is at mos
 a slow connection. Each zip holds a share of the resource's files, at their paths in the resource; the recipe unzips
 them all into the resource's folder.
 
+A resource with models for both games (stream/ for Legacy, stream_enhanced/ for GTA V Enhanced) gets a set of zips for
+each game, <repo>-legacy-<n>.zip and <repo>-enhanced-<n>.zip, each without the other game's folder: a server only ever
+uses its own game's. Every other resource gets one set, <repo>-<n>.zip. A rebuild replaces only the sets it makes, so
+the one set an older release had stays for the recipes that still name it.
+
 GitHub runs it: each such resource has templates/release-zips.yml as .github/workflows/release-zips.yml, which runs
 .github/workflows/release-zips.yml here when it publishes a release, and the Recipe update (tools/recipe_update.py) then
 puts the zips' tasks in both recipes. It also runs on a computer with git and gh (logged in with write access to the repo):
@@ -16,6 +21,7 @@ puts the zips' tasks in both recipes. It also runs on a computer with git and gh
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -29,6 +35,28 @@ STORED = {".webp", ".webm", ".png", ".jpg", ".jpeg", ".ogg", ".mp3", ".mp4", ".z
 # servers have taken longer than that (a slow disk, or antivirus checking each new file). A task's timeoutSeconds raises it.
 UNZIP_TIMEOUT = 1800
 FIXED_TIME = (2000, 1, 1, 0, 0, 0)  # every entry gets this time, so the same files give the same zips
+# Each game's zips leave out the other game's folder
+GAMES = {"legacy": "stream_enhanced/", "enhanced": "stream/"}
+
+
+def game_sets(files):
+    """{game: its files} for a resource with both stream/ and stream_enhanced/, else None (one set for every server).
+
+    Refuses when the two folders don't hold the same file names: one game's server would then miss a model."""
+    legacy = {path[len("stream/"):] for path, _, _ in files if path.startswith("stream/")}
+    enhanced = {path[len("stream_enhanced/"):] for path, _, _ in files if path.startswith("stream_enhanced/")}
+    if not legacy or not enhanced:
+        return None
+    if legacy != enhanced:
+        raise SystemExit("stream/ and stream_enhanced/ don't hold the same files. Only in stream/: "
+                         f"{sorted(legacy - enhanced)[:10]}; only in stream_enhanced/: {sorted(enhanced - legacy)[:10]}")
+    return {game: [f for f in files if not f[0].startswith(skip)] for game, skip in GAMES.items()}
+
+
+def zip_set(repo, name):
+    """Which set a release asset belongs to: "legacy" or "enhanced", "" for the one set, None if it isn't a zip of ours."""
+    m = re.fullmatch(rf"{re.escape(repo)}-(?:(legacy|enhanced)-)?\d+\.zip", name)
+    return None if m is None else m.group(1) or ""
 
 
 def run(*cmd, cwd=None):
@@ -85,6 +113,9 @@ def write_zip(zip_path, blobs, files):
 def recipe_tasks(repo, tag, dest, names):
     lines = []
     for name in names:
+        game = zip_set(repo, name)
+        if game and name.endswith("-1.zip"):
+            lines.append(f"  # {game}")
         lines += [
             "  - action: download_file",
             f"    url: https://github.com/{ORG}/{repo}/releases/download/{tag}/{name}",
@@ -128,27 +159,36 @@ def main():
 
         out = args.out or os.path.join(work, "zips")
         os.makedirs(out, exist_ok=True)
-        names = []
+        games = game_sets(files)
+        sets = games or {"": files}
+        names, counts = [], {}
         blobs = Blobs(src)
-        for i, part in enumerate(split(files, int(args.max_mb * 1024 * 1024)), 1):
-            name = f"{repo}-{i}.zip"
-            write_zip(os.path.join(out, name), blobs, part)
-            names.append(name)
-            print(f"  {name}: {len(part)} files, {os.path.getsize(os.path.join(out, name)) / 1048576:.1f} MiB",
-                  file=sys.stderr)
+        for game, game_files in sets.items():
+            parts = split(game_files, int(args.max_mb * 1024 * 1024))
+            counts[game] = len(parts)
+            for i, part in enumerate(parts, 1):
+                name = f"{repo}-{game}-{i}.zip" if game else f"{repo}-{i}.zip"
+                write_zip(os.path.join(out, name), blobs, part)
+                names.append(name)
+                print(f"  {name}: {len(part)} files, {os.path.getsize(os.path.join(out, name)) / 1048576:.1f} MiB",
+                      file=sys.stderr)
         blobs.close()
 
         if not args.no_upload:
             full = f"{ORG}/{repo}"
             print(f"Uploading to {full} {tag}...", file=sys.stderr)
             run("gh", "release", "upload", tag, *[os.path.join(out, n) for n in names], "--clobber", "-R", full)
-            # A rebuild with fewer parts leaves the old higher-numbered parts: remove them
+            # A rebuild with fewer parts leaves the old higher-numbered parts of its sets: remove them. Another set
+            # stays (the one set of a release made before the per-game ones, which older recipes still name).
             assets = run("gh", "release", "view", tag, "-R", full, "--json", "assets", "--jq", ".assets[].name")
             for asset in assets.split():
-                if asset.startswith(f"{repo}-") and asset.endswith(".zip") and asset not in names:
+                if zip_set(repo, asset) in sets and asset not in names:
                     run("gh", "release", "delete-asset", tag, asset, "-R", full, "--yes")
                     print(f"  removed the old {asset}", file=sys.stderr)
 
+        # The manifest's parts for it, then its tasks in the recipes
+        parts = counts[""] if "" in counts else "{ " + ", ".join(f"{g} = {n}" for g, n in counts.items()) + " }"
+        print(f"# parts = {parts}")
         print(recipe_tasks(repo, tag, dest, names))
     finally:
         if not args.out:

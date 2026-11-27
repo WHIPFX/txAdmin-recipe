@@ -62,8 +62,11 @@ function check(file) {
     return recipe;
 }
 
-// What a recipe installs, without the server.cfg and the media scripts
-const installs = (recipe) => recipe.tasks.filter((t) => t.action !== 'write_file');
+// What a recipe installs, without the server.cfg and the media scripts. A resource with models for both games has a
+// set of zips for each (<repo>-legacy-<n>.zip, <repo>-enhanced-<n>.zip), and each recipe downloads its own game's: those
+// names are compared without the game.
+const installs = (recipe, game) => JSON.parse(JSON.stringify(recipe.tasks.filter((t) => t.action !== 'write_file'))
+    .split(`-${game}-`).join('-GAME-'));
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 let failed = false;
@@ -88,7 +91,7 @@ for (const [name, recipe] of Object.entries(parsed)) {
 for (const [name, legacy] of Object.entries(parsed)) {
     if (!name.includes('-legacy')) continue;
     const enhanced = parsed[name.replace('-legacy', '-enhanced')];
-    if (enhanced && !same(installs(legacy), installs(enhanced))) {
+    if (enhanced && !same(installs(legacy, 'legacy'), installs(enhanced, 'enhanced'))) {
         failed = true;
         console.log(`FAIL  ${name}: installs something the Enhanced recipe doesn't, or the other way round`);
     }

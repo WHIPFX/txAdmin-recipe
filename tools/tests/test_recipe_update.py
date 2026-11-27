@@ -30,10 +30,19 @@ class Move(unittest.TestCase):
         self.assertEqual(len(after) - len(TEXT), len(NEW) - len(was))
 
     def test_a_zip_resource_gets_its_tag_and_parts(self) -> None:
-        g = NOW["whip_gunny"]
-        after = recipe_update.move(TEXT, "whip_gunny", NEW, g.parts + 1)
+        p = NOW["whip_media_props"]
+        after = recipe_update.move(TEXT, "whip_media_props", NEW, p.parts + 1)
         self.assertEqual(changed(TEXT, after),
-                         [(f'tag = "{g.tag}"', f'tag = "{NEW}"'), (f"parts = {g.parts}", f"parts = {g.parts + 1}")])
+                         [(f'tag = "{p.tag}"', f'tag = "{NEW}"'), (f"parts = {p.parts}", f"parts = {p.parts + 1}")])
+
+    def test_a_resource_with_models_for_both_games_gets_a_count_for_each(self) -> None:
+        g = NOW["whip_gunny"]
+        after = recipe_update.move(TEXT, "whip_gunny", NEW, {"legacy": 2, "enhanced": 3})
+        self.assertEqual(changed(TEXT, after), [(f'tag = "{g.tag}"', f'tag = "{NEW}"'),
+                                                (f"parts = {recipe_update.parts_value(g.parts)}",
+                                                 "parts = { legacy = 2, enhanced = 3 }")])
+        self.assertEqual(next(r for r in load(after).resources if r.name == "whip_gunny").parts,
+                         {"legacy": 2, "enhanced": 3})
 
     def test_only_that_resource_moves_even_when_others_share_its_tag(self) -> None:
         after = recipe_update.move(TEXT, "whip_media_props", NEW, 2)
@@ -50,14 +59,28 @@ class Move(unittest.TestCase):
             recipe_update.move(TEXT, "whip_core", NEW, 3)  # a source resource has no parts
 
     def test_the_recipes_made_after_a_move_install_the_new_release(self) -> None:
-        parts = NOW["whip_gunny"].parts + 1
-        m = load(recipe_update.move(TEXT, "whip_gunny", NEW, parts))
+        m = load(recipe_update.move(TEXT, "whip_gunny", NEW, {"legacy": 2, "enhanced": 3}))
         text = recipes.render(m, "enhanced")
         base = "https://github.com/WHIPFX/whip_gunny/releases/download"
-        for i in range(1, parts + 1):
-            self.assertIn(f"    url: {base}/{NEW}/whip_gunny-{i}.zip\n", text)
+        for i in range(1, 4):
+            self.assertIn(f"    url: {base}/{NEW}/whip_gunny-enhanced-{i}.zip\n", text)
+        self.assertNotIn("whip_gunny-legacy-", text)
         self.assertNotIn(f"{base}/{NOW['whip_gunny'].tag}/", text)
         self.assertIn(f"  # whip_gunny {NEW}, as its release's zips", text)
+
+
+class ReleaseParts(unittest.TestCase):
+    def test_one_set_counts_its_zips(self) -> None:
+        self.assertEqual(recipe_update.release_parts("whip_x", ["whip_x-2.zip", "whip_x-1.zip", "notes.txt"]), 2)
+
+    def test_a_set_for_each_game_wins_over_an_older_one_set(self) -> None:
+        assets = ["whip_x-1.zip", "whip_x-2.zip", "whip_x-legacy-1.zip", "whip_x-enhanced-1.zip", "whip_x-enhanced-2.zip"]
+        self.assertEqual(recipe_update.release_parts("whip_x", assets), {"legacy": 1, "enhanced": 2})
+
+    def test_no_zips_yet_and_gaps(self) -> None:
+        self.assertIsNone(recipe_update.release_parts("whip_x", ["whip_y-1.zip", "whip_x.zip"]))
+        with self.assertRaises(recipe_update.Refused):
+            recipe_update.release_parts("whip_x", ["whip_x-legacy-1.zip", "whip_x-legacy-3.zip", "whip_x-enhanced-1.zip"])
 
 
 class Resources(unittest.TestCase):
