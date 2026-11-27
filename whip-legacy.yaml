@@ -63,9 +63,9 @@ tasks:
     ref: v1.1.0
     dest: ./resources/whip_dealership
 
-  # whip_fuel v1.0.0, as its release's zips for this game (made by tools/release_zips.py)
+  # whip_fuel v1.0.1, as its release's zips for this game (made by tools/release_zips.py)
   - action: download_file
-    url: https://github.com/WHIPFX/whip_fuel/releases/download/v1.0.0/whip_fuel-legacy-1.zip
+    url: https://github.com/WHIPFX/whip_fuel/releases/download/v1.0.1/whip_fuel-legacy-1.zip
     path: ./tmp/whip_fuel-legacy-1.zip
 
   - action: unzip

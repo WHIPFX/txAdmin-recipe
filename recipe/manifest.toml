@@ -90,7 +90,7 @@ github = "source"
 [[section.resource]]
 name = "whip_fuel"
 repo = "WHIPFX/whip_fuel"
-tag = "v1.0.0"
+tag = "v1.0.1"
 dest = "./resources/whip_fuel"
 github = "release-zips"
 parts = { legacy = 1, enhanced = 1 }
