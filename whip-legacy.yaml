@@ -33,7 +33,7 @@ tasks:
   # ---- WHIP ----------------------------------------------------------------------------------------------------------
   - action: download_github
     src: WHIPFX/whip_core
-    ref: v1.4.1
+    ref: v1.4.2
     dest: ./resources/whip_core
 
   - action: download_github

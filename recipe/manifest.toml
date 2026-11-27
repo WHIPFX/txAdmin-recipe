@@ -51,7 +51,7 @@ title = "WHIP"
 [[section.resource]]
 name = "whip_core"
 repo = "WHIPFX/whip_core"
-tag = "v1.4.1"
+tag = "v1.4.2"
 dest = "./resources/whip_core"
 github = "source"
 
