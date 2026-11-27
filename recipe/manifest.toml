@@ -79,7 +79,7 @@ github = "source"
 [[section.resource]]
 name = "whip_dealership"
 repo = "WHIPFX/whip_dealership"
-tag = "v1.0.0"
+tag = "v1.1.0"
 dest = "./resources/whip_dealership"
 github = "source"
 
