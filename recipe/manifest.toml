@@ -53,14 +53,14 @@ title = "WHIP"
 [[section.resource]]
 name = "whip_core"
 repo = "WHIPFX/whip_core"
-tag = "v1.4.1"
+tag = "v1.4.2"
 dest = "./resources/whip_core"
 github = "source"
 
 [[section.resource]]
 name = "whip_autos"
 repo = "WHIPFX/whip_autos"
-tag = "v1.0.0"
+tag = "v1.0.1"
 dest = "./resources/whip_autos"
 github = "source"
 
@@ -83,7 +83,7 @@ github = "source"
 [[section.resource]]
 name = "whip_dealership"
 repo = "WHIPFX/whip_dealership"
-tag = "v1.0.0"
+tag = "v1.1.0"
 dest = "./resources/whip_dealership"
 github = "source"
 

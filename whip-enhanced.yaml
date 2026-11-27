@@ -34,12 +34,12 @@ tasks:
   # ---- WHIP ----------------------------------------------------------------------------------------------------------
   - action: download_github
     src: WHIPFX/whip_core
-    ref: v1.4.1
+    ref: v1.4.2
     dest: ./resources/whip_core
 
   - action: download_github
     src: WHIPFX/whip_autos
-    ref: v1.0.0
+    ref: v1.0.1
     dest: ./resources/whip_autos
 
   # whip_autos_shop v1.0.1, as its release's zips for this game (made by tools/release_zips.py)
@@ -59,7 +59,7 @@ tasks:
 
   - action: download_github
     src: WHIPFX/whip_dealership
-    ref: v1.0.0
+    ref: v1.1.0
     dest: ./resources/whip_dealership
 
   # whip_fuel v1.0.0, as its release's zips for this game (made by tools/release_zips.py)
