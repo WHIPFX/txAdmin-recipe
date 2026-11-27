@@ -14,7 +14,9 @@
 #   dest     its folder in the server
 #   github   how the GitHub recipes get it:
 #              "source"         download_github of the tag (GitHub zips it on request)
-#              "release-zips"   the zips tools/release_zips.py attached to the release; parts = how many
+#              "release-zips"   the zips tools/release_zips.py attached to the release; parts = how many. A
+#                               resource with models for both games (stream/ and stream_enhanced/) has a set for
+#                               each, and each recipe gets its own game's: parts = { legacy = 2, enhanced = 2 }
 #              "release-asset"  one file attached to the release (asset = its name), unzipped into dest
 #   pictures true for the picture packs: not installed, as WHIP's CDN serves their files (tools/media.py,
 #            .github/workflows/media.yml) and whip_core loads a picture from media.whipfx.net when its pack isn't
@@ -67,7 +69,9 @@ name = "whip_autos_shop"
 repo = "WHIPFX/whip_autos_shop"
 tag = "v1.0.1"
 dest = "./resources/whip_autos_shop"
-github = "source"
+github = "release-zips"
+parts = { legacy = 1, enhanced = 1 }
+note = "whip_autos_shop {tag}, as its release's zips for this game (made by tools/release_zips.py)"
 
 [[section.resource]]
 name = "whip_chat"
@@ -88,7 +92,9 @@ name = "whip_fuel"
 repo = "WHIPFX/whip_fuel"
 tag = "v1.0.0"
 dest = "./resources/whip_fuel"
-github = "source"
+github = "release-zips"
+parts = { legacy = 1, enhanced = 1 }
+note = "whip_fuel {tag}, as its release's zips for this game (made by tools/release_zips.py)"
 
 [[section.resource]]
 name = "whip_gunny"
@@ -96,8 +102,8 @@ repo = "WHIPFX/whip_gunny"
 tag = "v2.0.1"
 dest = "./resources/whip_gunny"
 github = "release-zips"
-parts = 4
-note = "whip_gunny {tag}, as its release's zips (made by tools/release_zips.py)"
+parts = { legacy = 2, enhanced = 2 }
+note = "whip_gunny {tag}, as its release's zips for this game (made by tools/release_zips.py)"
 
 [[section.resource]]
 name = "whip_loadingscreen"
@@ -174,7 +180,8 @@ repo = "WHIPFX/whip_media_map"
 tag = "v1.0.0"
 dest = "./resources/[assets]/[media]/whip_media_map"
 github = "release-zips"
-parts = 1
+parts = { legacy = 1, enhanced = 1 }
+note = "whip_media_map {tag}, as its release's zips for this game"
 
 # ---- The map packs ---------------------------------------------------------------------------------------------------
 [[section]]
@@ -186,8 +193,8 @@ repo = "WHIPFX/whip_homes_mirrorpark"
 tag = "v1.0.1"
 dest = "./resources/[assets]/whip_homes_mirrorpark"
 github = "release-zips"
-parts = 3
-note = "whip_homes_mirrorpark {tag}, as its release's zips (made by tools/release_zips.py)"
+parts = { legacy = 2, enhanced = 2 }
+note = "whip_homes_mirrorpark {tag}, as its release's zips for this game (made by tools/release_zips.py)"
 
 [[section.resource]]
 name = "whip_graphics"

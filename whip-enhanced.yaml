@@ -12,7 +12,9 @@
 # release (tools/release_zips.py), then puts their tasks here. Their unzips get 1800 seconds: some servers (a slow disk,
 # or antivirus checking each new file) take more than the 180 txAdmin allows by default to write a few thousand small
 # files.
-# Each download_github is one call to GitHub's API (60 an hour without a token): 13 here.
+# A resource with models for both games (stream/ for Legacy, stream_enhanced/ for Enhanced) has a set of zips for each
+# game, and this recipe downloads the enhanced set only.
+# Each download_github is one call to GitHub's API (60 an hour without a token): 11 here.
 #
 # The picture packs (whip_media_clothing_male, whip_media_clothing_female, whip_media_props and whip_media_previews) are
 # not installed: whip_core loads each picture from WHIP's CDN (media.whipfx.net) the first time a screen shows it. To
@@ -26,7 +28,7 @@ version: 1.0.0
 author: WHIPFX
 description: >-
   WHIP, a complete server base: characters, inventory, money and banks, jobs, cars, homes, and an admin panel in game
-  (/whip). For a GTA V Enhanced (cfx-server) server. Downloads about 300 MB from GitHub.
+  (/whip). For a GTA V Enhanced (cfx-server) server. Downloads about 180 MB from GitHub.
 
 tasks:
   # ---- WHIP ----------------------------------------------------------------------------------------------------------
@@ -40,10 +42,15 @@ tasks:
     ref: v1.0.0
     dest: ./resources/whip_autos
 
-  - action: download_github
-    src: WHIPFX/whip_autos_shop
-    ref: v1.0.1
+  # whip_autos_shop v1.0.1, as its release's zips for this game (made by tools/release_zips.py)
+  - action: download_file
+    url: https://github.com/WHIPFX/whip_autos_shop/releases/download/v1.0.1/whip_autos_shop-enhanced-1.zip
+    path: ./tmp/whip_autos_shop-enhanced-1.zip
+
+  - action: unzip
+    src: ./tmp/whip_autos_shop-enhanced-1.zip
     dest: ./resources/whip_autos_shop
+    timeoutSeconds: 1800
 
   - action: download_github
     src: WHIPFX/whip_chat
@@ -55,45 +62,32 @@ tasks:
     ref: v1.0.0
     dest: ./resources/whip_dealership
 
-  - action: download_github
-    src: WHIPFX/whip_fuel
-    ref: v1.0.0
+  # whip_fuel v1.0.0, as its release's zips for this game (made by tools/release_zips.py)
+  - action: download_file
+    url: https://github.com/WHIPFX/whip_fuel/releases/download/v1.0.0/whip_fuel-enhanced-1.zip
+    path: ./tmp/whip_fuel-enhanced-1.zip
+
+  - action: unzip
+    src: ./tmp/whip_fuel-enhanced-1.zip
     dest: ./resources/whip_fuel
+    timeoutSeconds: 1800
 
-  # whip_gunny v2.0.1, as its release's zips (made by tools/release_zips.py)
+  # whip_gunny v2.0.1, as its release's zips for this game (made by tools/release_zips.py)
   - action: download_file
-    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-1.zip
-    path: ./tmp/whip_gunny-1.zip
+    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-enhanced-1.zip
+    path: ./tmp/whip_gunny-enhanced-1.zip
 
   - action: unzip
-    src: ./tmp/whip_gunny-1.zip
+    src: ./tmp/whip_gunny-enhanced-1.zip
     dest: ./resources/whip_gunny
     timeoutSeconds: 1800
 
   - action: download_file
-    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-2.zip
-    path: ./tmp/whip_gunny-2.zip
+    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-enhanced-2.zip
+    path: ./tmp/whip_gunny-enhanced-2.zip
 
   - action: unzip
-    src: ./tmp/whip_gunny-2.zip
-    dest: ./resources/whip_gunny
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-3.zip
-    path: ./tmp/whip_gunny-3.zip
-
-  - action: unzip
-    src: ./tmp/whip_gunny-3.zip
-    dest: ./resources/whip_gunny
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_gunny/releases/download/v2.0.1/whip_gunny-4.zip
-    path: ./tmp/whip_gunny-4.zip
-
-  - action: unzip
-    src: ./tmp/whip_gunny-4.zip
+    src: ./tmp/whip_gunny-enhanced-2.zip
     dest: ./resources/whip_gunny
     timeoutSeconds: 1800
 
@@ -119,41 +113,33 @@ tasks:
 
   # ---- WHIP's media packs, in [assets]/[media] -----------------------------------------------------------------------
   # Each as its release's zips, made by tools/release_zips.py
+  # whip_media_map v1.0.0, as its release's zips for this game
   - action: download_file
-    url: https://github.com/WHIPFX/whip_media_map/releases/download/v1.0.0/whip_media_map-1.zip
-    path: ./tmp/whip_media_map-1.zip
+    url: https://github.com/WHIPFX/whip_media_map/releases/download/v1.0.0/whip_media_map-enhanced-1.zip
+    path: ./tmp/whip_media_map-enhanced-1.zip
 
   - action: unzip
-    src: ./tmp/whip_media_map-1.zip
+    src: ./tmp/whip_media_map-enhanced-1.zip
     dest: ./resources/[assets]/[media]/whip_media_map
     timeoutSeconds: 1800
 
   # ---- WHIP's map packs, in [assets] ---------------------------------------------------------------------------------
-  # whip_homes_mirrorpark v1.0.1, as its release's zips (made by tools/release_zips.py)
+  # whip_homes_mirrorpark v1.0.1, as its release's zips for this game (made by tools/release_zips.py)
   - action: download_file
-    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.1/whip_homes_mirrorpark-1.zip
-    path: ./tmp/whip_homes_mirrorpark-1.zip
+    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.1/whip_homes_mirrorpark-enhanced-1.zip
+    path: ./tmp/whip_homes_mirrorpark-enhanced-1.zip
 
   - action: unzip
-    src: ./tmp/whip_homes_mirrorpark-1.zip
+    src: ./tmp/whip_homes_mirrorpark-enhanced-1.zip
     dest: ./resources/[assets]/whip_homes_mirrorpark
     timeoutSeconds: 1800
 
   - action: download_file
-    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.1/whip_homes_mirrorpark-2.zip
-    path: ./tmp/whip_homes_mirrorpark-2.zip
+    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.1/whip_homes_mirrorpark-enhanced-2.zip
+    path: ./tmp/whip_homes_mirrorpark-enhanced-2.zip
 
   - action: unzip
-    src: ./tmp/whip_homes_mirrorpark-2.zip
-    dest: ./resources/[assets]/whip_homes_mirrorpark
-    timeoutSeconds: 1800
-
-  - action: download_file
-    url: https://github.com/WHIPFX/whip_homes_mirrorpark/releases/download/v1.0.1/whip_homes_mirrorpark-3.zip
-    path: ./tmp/whip_homes_mirrorpark-3.zip
-
-  - action: unzip
-    src: ./tmp/whip_homes_mirrorpark-3.zip
+    src: ./tmp/whip_homes_mirrorpark-enhanced-2.zip
     dest: ./resources/[assets]/whip_homes_mirrorpark
     timeoutSeconds: 1800
 
